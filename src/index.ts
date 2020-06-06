@@ -70,3 +70,14 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
 }
 
 const routes = getRoutes(db).then(routes => console.log(routes));
+
+import express from 'express';
+const app = express();
+
+app.use(express.static('./static'))
+
+app.get('/api/something', function (req, res) {
+  res.send('Hello World')
+})
+
+app.listen(3000);
