@@ -1,74 +1,79 @@
 ymaps.ready(init);
 
-function init() {
+async function init() {
     // Creating the map.
-    var myMap = new ymaps.Map("map", {
-            center: [55.72, 37.44],
-            zoom: 10
-        }, {
-            searchControlProvider: 'yandex#search'
-        });
+    const myMap = new ymaps.Map("map", {
+        center: [53.9, 27.56],
+        zoom: 10
+    }, {
+        searchControlProvider: 'yandex#search'
+    });
 
-    // Creating a polyline using the GeoObject class.
-    var myGeoObject = new ymaps.GeoObject({
-            // Describing the geometry of the geo object.
-            geometry: {
-                // The "Polyline" geometry type.
-                type: "LineString",
-                // Specifying the coordinates of the vertices of the polyline.
-                coordinates: [
-                    [55.80, 37.50],
-                    [55.70, 37.40]
-                ]
-            },
-            // Defining properties of the geo object.
-            properties:{
-                // The contents of the hint.
-                hintContent: "I'm a geo object",
-                // The contents of the balloon.
-                balloonContent: "You can drag me"
-            }
-        }, {
-            /**
-             * Setting the geo object options.
-             *  Enabling drag-n-drop for the polyline.
-             */
-            draggable: true,
-            // The line color.
-            strokeColor: "#FFFF00",
-            // Line width.
-            strokeWidth: 5
-        });
+    const routesList = document.querySelector('#routes-list');
+    const routeInput = document.querySelector('#route-input');
+    const routeSelectedLabel = document.querySelector('#route-selected-title');
+    const routeEditBtn = document.querySelector('#route-edit');
+    const routeFinishBtn = document.querySelector('#route-finish');
+    const routes = await fetch('/api/routes').then(routes => routes.json())
 
-    // Creating a polyline using the Polyline auxiliary class.
-    var myPolyline = new ymaps.Polyline([
-            // Specifying the coordinates of the vertices of the polyline.
-            [55.80, 37.50],
-            [55.80, 37.40],
-            [55.70, 37.50],
-            [55.70, 37.40]
-        ], {
-            /**
-             * Describing the properties of the geo object.
-             *  The contents of the balloon.
-             */
-            balloonContent: "Polyline"
-        }, {
-            /**
-             * Setting options for the geo object. Disabling the close button on a balloon.
-             *
-             */
-            balloonCloseButton: false,
-            // The line color.
-            strokeColor: "#000000",
-            // Line width.
+    routes.forEach(route => {
+        const option = document.createElement('option');
+        option.label = route.title;
+        option.value = route.id;
+        routesList.appendChild(option);
+    });
+
+    routeInput.addEventListener('change', (e) => {
+        const id = e.target.value;
+        const route = routes.find(route => route.id === id);
+        if (!route) {
+            return;
+        }
+
+        routeSelectedLabel.textContent = route.title;
+        // Creating a polyline.
+        const myPolyline = new ymaps.Polyline(
+            // Specifying the coordinates of the vertices.
+            route.lines.map(line => [line.latitude, line.longitude]),
+            {}, {
+            strokeColor: "#00000088",
+            // The line width.
             strokeWidth: 4,
-            // The transparency coefficient.
-            strokeOpacity: 0.5
+            // The maximum number of vertices in the polyline.
+            // Adding a new item to the context menu that allows deleting the polyline.
+            editorMenuManager: function (items) {
+                items.push({
+                    title: "Delete line",
+                    onClick: function () {
+                        myMap.geoObjects.remove(myPolyline);
+                    }
+                });
+                return items;
+            }
         });
 
-    // Adding lines to the map.
-    myMap.geoObjects
-        .add(myGeoObject)
-        .add(myPolyline);
+        myMap.geoObjects.add(myPolyline);
+
+        myPolyline.events.add(['editorstatechange'], e => {
+            const coords = e.originalEvent.target.geometry.getCoordinates();
+            route.lines = coords.map(coord => {
+                return {
+                    latitude: coord[0],
+                    longitude: coord[1],
+                };
+            });
+        });
+
+        routeEditBtn.addEventListener('click', e => {
+            // Adding a line to the map.
+
+            // Turning on the edit mode.
+            myPolyline.editor.startEditing();
+        });
+
+        routeFinishBtn.addEventListener('click', e => {
+            myPolyline.editor.stopEditing();
+            console.log(route.lines);
+        })
+    });
 }

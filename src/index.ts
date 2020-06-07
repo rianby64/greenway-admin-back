@@ -1,5 +1,9 @@
 
+import express from 'express';
 import * as admin from "firebase-admin";
+
+const app = express();
+app.use(express.static('./static'))
 
 admin.initializeApp({
   credential: admin.credential.cert('./firebase-key.json'),
@@ -24,8 +28,12 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
     const dotsRef = routeRef.get('dots') as FirebaseFirestore.DocumentReference[];
     const dots = await Promise.all(dotsRef.map(async dotRef => {
       const dot = await dotRef.get();
+      const pos = dot.get('position') as FirebaseFirestore.GeoPoint;
       return {
-        [dotRef.id]: dot.get('position') as FirebaseFirestore.GeoPoint
+        [dotRef.id]: {
+          latitude: pos.latitude,
+          longitude: pos.longitude,
+        }
       }
     }));
 
@@ -46,6 +54,7 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
     const difficulty = await difficultyRef.get();
 
     return {
+      id: routeRef.id,
       animals: routeRef.get('animals') as Boolean,
       approved: routeRef.get('approved') as Boolean,
       categories,
@@ -59,7 +68,9 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
       disabilities: routeRef.get('disabilities') as Boolean,
       dots,
       images,
-      lines,
+      lines: lines.map(line => {
+        return { latitude: line.latitude, longitude: line.longitude }
+      }),
       minutes: routeRef.get('minutes') as Number,
       title: routeRef.get('title') as String,
       types
@@ -69,15 +80,9 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
   return routes;
 }
 
-const routes = getRoutes(db).then(routes => console.log(routes));
-
-import express from 'express';
-const app = express();
-
-app.use(express.static('./static'))
-
-app.get('/api/something', function (req, res) {
-  res.send('Hello World')
-})
+app.get('/api/routes', async function (req, res) {
+  const routes = await getRoutes(db);
+  res.json(routes);
+});
 
 app.listen(3000);
