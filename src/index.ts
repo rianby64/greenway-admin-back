@@ -1,9 +1,15 @@
 
 import express from 'express';
+import bodyParser from 'body-parser';
 import * as admin from "firebase-admin";
 
 const app = express();
-app.use(express.static('./static'))
+app.use(express.static('./static'));
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(bodyParser.raw());
+
 
 admin.initializeApp({
   credential: admin.credential.cert('./firebase-key.json'),
@@ -80,9 +86,15 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
   return routes;
 }
 
-app.get('/api/routes', async function (req, res) {
+app.get('/api/routes', async function(req, res) {
   const routes = await getRoutes(db);
   res.json(routes);
+});
+
+app.put('/api/routes/:id/lines', async function(req, res) {
+  const id = req.params.id;
+  const lines = req.body;
+  console.log(id, lines);
 });
 
 app.listen(3000);

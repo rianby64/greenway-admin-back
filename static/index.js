@@ -65,15 +65,18 @@ async function init() {
         });
 
         routeEditBtn.addEventListener('click', e => {
-            // Adding a line to the map.
-
-            // Turning on the edit mode.
             myPolyline.editor.startEditing();
         });
 
         routeFinishBtn.addEventListener('click', e => {
             myPolyline.editor.stopEditing();
-            console.log(route.lines);
+            fetch(`/api/routes/${route.id}/lines`, {
+                method: 'put',
+                body: JSON.stringify(route.lines),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
         })
     });
 }
