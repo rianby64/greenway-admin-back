@@ -11,6 +11,7 @@ async function init() {
 
     window.myMap = myMap;
 
+    const routeAddBtn = document.querySelector('#route-add');
     const routesList = document.querySelector('#routes-list');
     const routeInput = document.querySelector('#route-input');
     const routeSelectedLabel = document.querySelector('#route-selected-title');
@@ -149,6 +150,10 @@ async function init() {
         editRouteModal.style.display = "block";
     });
 
+    routeAddBtn.addEventListener('click', function() {
+        editRouteModal.style.display = "block";
+    });
+
     // When the user clicks on <span> (x), close the modal
     editRouteModalClose.addEventListener('click', function() {
         editRouteModal.style.display = "none";
@@ -190,9 +195,31 @@ async function init() {
             } catch(e) {
                 errorDiv.textContent = e;
             }
-
         } else {
-            console.log('do insert of', form);
+            try {
+                const request = await fetch(`/api/routes`, {
+                    method: 'post',
+                    body: JSON.stringify({...form, lines: []}),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const response = await request.json();
+                if (response.success) {
+                    const routesUpdated = await fetch('/api/routes').then(routes => routes.json());
+                    routes.length = 0;
+                    routesUpdated.forEach(route => {
+                        routes.push(route);
+                    });
+                    populateRoutesInDataList();
+                    editRouteModal.style.display = "none";
+                } else {
+                    errorDiv.textContent = response;
+                }
+            } catch(e) {
+                errorDiv.textContent = e;
+            }
         }
     })
 }
