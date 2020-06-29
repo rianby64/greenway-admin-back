@@ -141,4 +141,29 @@ app.put('/api/routes/:id/lines', async function(req, res) {
   }
 });
 
+
+app.put('/api/routes/:id', async function(req, res) {
+  const id = req.params.id;
+  const data = req.body as {
+    id: string;
+    animals: boolean;
+    approved: boolean;
+    children: boolean;
+    disabilities: boolean;
+    minutes: number;
+    title: string;
+    description: string;
+  };
+
+  try {
+    await db.collection('routes').doc(id).update(data);
+    res.json({
+      success: true,
+    });
+  } catch(e) {
+    res.status(500).json(e);
+  }
+
+});
+
 app.listen(3000);

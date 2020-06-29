@@ -15,16 +15,22 @@ async function init() {
     const routeInput = document.querySelector('#route-input');
     const routeSelectedLabel = document.querySelector('#route-selected-title');
     const routeEditBtn = document.querySelector('#route-edit');
-    const routeEditFinishBtn = document.querySelector('#route-edit-finish');
-    const routeEditCancelBtn = document.querySelector('#route-edit-cancel');
-    const routes = await fetch('/api/routes').then(routes => routes.json())
+    const routeForm = document.querySelector('#route-edit-form');
+    const routeEditPathBtn = document.querySelector('#route-edit-path');
+    const routeEditPathFinishBtn = document.querySelector('#route-edit-path-finish');
+    const routeEditPathCancelBtn = document.querySelector('#route-edit-path-cancel');
+    const routes = await fetch('/api/routes').then(routes => routes.json());
 
-    routes.forEach(route => {
-        const option = document.createElement('option');
-        option.label = route.title;
-        option.value = route.id;
-        routesList.appendChild(option);
-    });
+    function populateRoutesInDataList() {
+        routesList.innerHTML = '';
+        routes.forEach(route => {
+            const option = document.createElement('option');
+            option.label = route.title;
+            option.value = route.id;
+            routesList.appendChild(option);
+        });
+    }
+    populateRoutesInDataList();
 
     let listener1 = null;
     let listener2 = null;
@@ -34,19 +40,41 @@ async function init() {
         const id = e.target.value;
         const route = routes.find(route => route.id === id);
 
-        routeEditFinishBtn.hidden = true;
+        routeEditPathFinishBtn.hidden = true;
         routeEditBtn.hidden = true;
-        routeEditCancelBtn.hidden = true;
+        routeEditPathBtn.hidden = true;
+        routeEditPathCancelBtn.hidden = true;
         routeSelectedLabel.textContent = '-';
 
         if (!route) {
             return;
         }
 
+        const inputs = {
+            id: routeForm.querySelector('[name=id]'),
+            animals: routeForm.querySelector('[name=animals]'),
+            approved: routeForm.querySelector('[name=approved]'),
+            children: routeForm.querySelector('[name=children]'),
+            disabilities: routeForm.querySelector('[name=disabilities]'),
+            minutes: routeForm.querySelector('[name=minutes]'),
+            title: routeForm.querySelector('[name=title]'),
+            description: routeForm.querySelector('[name=description]')
+        }
+
+        inputs.id.value = route.id;
+        inputs.animals.checked = route.animals;
+        inputs.approved.checked = route.approved;
+        inputs.children.checked = route.children;
+        inputs.disabilities.checked = route.disabilities;
+        inputs.minutes.value = route.minutes;
+        inputs.title.value = route.title;
+        inputs.description.value = route.description;
+
         myMap.geoObjects.removeAll();
-        listener1 && routeEditBtn.removeEventListener('click', listener1);
-        listener2 && routeEditFinishBtn.removeEventListener('click', listener2);
-        listener3 && routeEditCancelBtn.removeEventListener('click', listener3);
+        listener1 && routeEditPathBtn.removeEventListener('click', listener1);
+        listener2 && routeEditPathFinishBtn.removeEventListener('click', listener2);
+        listener3 && routeEditPathCancelBtn.removeEventListener('click', listener3);
+        routeEditPathBtn.hidden = false;
         routeEditBtn.hidden = false;
         routeSelectedLabel.textContent = route.title;
 
@@ -85,9 +113,10 @@ async function init() {
 
         listener1 = e => {
             myPolyline.editor.startEditing();
+            routeEditPathBtn.hidden = true;
             routeEditBtn.hidden = true;
-            routeEditFinishBtn.hidden = false;
-            routeEditCancelBtn.hidden = false;
+            routeEditPathFinishBtn.hidden = false;
+            routeEditPathCancelBtn.hidden = false;
         };
         listener2 = e => {
             listener3(e);
@@ -101,12 +130,69 @@ async function init() {
         };
         listener3 = e => {
             myPolyline.editor.stopEditing();
+            routeEditPathBtn.hidden = false;
             routeEditBtn.hidden = false;
-            routeEditFinishBtn.hidden = true;
-            routeEditCancelBtn.hidden = true;
+            routeEditPathFinishBtn.hidden = true;
+            routeEditPathCancelBtn.hidden = true;
         }
-        routeEditBtn.addEventListener('click', listener1);
-        routeEditFinishBtn.addEventListener('click', listener2);
-        routeEditCancelBtn.addEventListener('click', listener3);
+        routeEditPathBtn.addEventListener('click', listener1);
+        routeEditPathFinishBtn.addEventListener('click', listener2);
+        routeEditPathCancelBtn.addEventListener('click', listener3);
     });
+
+    const editRouteModal = document.getElementById("route-edit-modal");
+
+    // Get the <span> element that closes the modal
+    const editRouteModalClose = document.getElementById("route-edit-modal-close");
+
+    routeEditBtn.addEventListener('click', function() {
+        editRouteModal.style.display = "block";
+    });
+
+    // When the user clicks on <span> (x), close the modal
+    editRouteModalClose.addEventListener('click', function() {
+        editRouteModal.style.display = "none";
+    });
+
+    routeForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = new FormData(e.target).toJSON();
+        form.animals = form.animals === "on" ? true : false;
+        form.approved = form.approved === "on" ? true : false;
+        form.children = form.children === "on" ? true : false;
+        form.disabilities = form.disabilities === "on" ? true : false;
+        form.minutes = Number(form.minutes);
+
+        const errorDiv = document.querySelector('#route-edit-modal #errors');
+
+        if (form.id !== "") {
+            try {
+                const request = await fetch(`/api/routes/${form.id}`, {
+                    method: 'put',
+                    body: JSON.stringify(form),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const response = await request.json();
+                if (response.success) {
+                    const routesUpdated = await fetch('/api/routes').then(routes => routes.json());
+                    routes.length = 0;
+                    routesUpdated.forEach(route => {
+                        routes.push(route);
+                    });
+                    populateRoutesInDataList();
+                    editRouteModal.style.display = "none";
+                } else {
+                    errorDiv.textContent = response;
+                }
+            } catch(e) {
+                errorDiv.textContent = e;
+            }
+
+        } else {
+            console.log('do insert of', form);
+        }
+    })
 }

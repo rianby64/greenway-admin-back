@@ -8,23 +8,116 @@
         Get your API-key on the Developer Dashboard: https://developer.tech.yandex.ru/keys/
     -->
     <script src="maps.yandex.ru.js" type="text/javascript"></script>
+    <script src="toJSON.js" type="text/javascript"></script>
     <script src="index.js" type="text/javascript"></script>
 	<style>
         html, body, #map {
             width: 100%; height: calc(100% - 20px); padding: 0; margin: 0;
         }
+
+        /* The Modal (background) */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+        /* Modal Content/Box */
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+        }
+
+        /* The Close Button */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div>
+        <button id="route-add">+</button>
         <datalist id="routes-list"></datalist>
         <input id="route-input" type="text" list="routes-list" placeholder="Select Route" />
-        <button>+</button>
         <span>Selected route: </span><span id="route-selected-title">-</span>
-        <button id="route-edit" hidden>Edit Route</button>
-        <button id="route-edit-finish" hidden>Submit</button>
-        <button id="route-edit-cancel" hidden>Cancel</button>
+        <button id="route-edit" hidden>Edit</button>
+        <button id="route-edit-path" hidden>Edit Route</button>
+        <button id="route-edit-path-finish" hidden>Submit</button>
+        <button id="route-edit-path-cancel" hidden>Cancel</button>
     </div>
     <div id="map"></div>
+
+    <!-- The Modal -->
+    <div id="route-edit-modal" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+        <span class="close" id="route-edit-modal-close">&times;</span>
+        <div>
+            <form id="route-edit-form">
+                <input type="hidden" name="id">
+                <div>
+                    <span>Animals?</span>
+                    <input type="checkbox" name="animals">
+                </div>
+
+                <div>
+                    <span>Approved?</span>
+                    <input type="checkbox" name="approved">
+                </div>
+
+                <div>
+                    <span>Children?</span>
+                    <input type="checkbox" name="children">
+                </div>
+
+                <div>
+                    <span>Disabilities?</span>
+                    <input type="checkbox" name="disabilities">
+                </div>
+
+                <div>
+                    <span>Minutes?</span>
+                    <input type="number" name="minutes">
+                </div>
+
+                <div>
+                    <span>Title?</span>
+                    <input type="text" name="title">
+                </div>
+
+                <div>
+                    <span>Description?</span>
+                    <textarea name="description"></textarea>
+                </div>
+
+                <div>
+                    <span></span>
+                    <input type="submit">
+                </div>
+            </form>
+            <div id="errors"></div>
+        </div>
+        </div>
+    </div>
 </body>
 </html>
