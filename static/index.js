@@ -22,6 +22,17 @@ async function init() {
     const routeEditPathCancelBtn = document.querySelector('#route-edit-path-cancel');
     const routes = await fetch('/api/routes').then(routes => routes.json());
 
+    const inputs = {
+        id: routeForm.querySelector('[name=id]'),
+        animals: routeForm.querySelector('[name=animals]'),
+        approved: routeForm.querySelector('[name=approved]'),
+        children: routeForm.querySelector('[name=children]'),
+        disabilities: routeForm.querySelector('[name=disabilities]'),
+        minutes: routeForm.querySelector('[name=minutes]'),
+        title: routeForm.querySelector('[name=title]'),
+        description: routeForm.querySelector('[name=description]')
+    };
+
     function populateRoutesInDataList() {
         routesList.innerHTML = '';
         routes.forEach(route => {
@@ -51,17 +62,6 @@ async function init() {
             return;
         }
 
-        const inputs = {
-            id: routeForm.querySelector('[name=id]'),
-            animals: routeForm.querySelector('[name=animals]'),
-            approved: routeForm.querySelector('[name=approved]'),
-            children: routeForm.querySelector('[name=children]'),
-            disabilities: routeForm.querySelector('[name=disabilities]'),
-            minutes: routeForm.querySelector('[name=minutes]'),
-            title: routeForm.querySelector('[name=title]'),
-            description: routeForm.querySelector('[name=description]')
-        }
-
         inputs.id.value = route.id;
         inputs.animals.checked = route.animals;
         inputs.approved.checked = route.approved;
@@ -79,10 +79,14 @@ async function init() {
         routeEditBtn.hidden = false;
         routeSelectedLabel.textContent = route.title;
 
+        const line = route.lines.map(line => [line.latitude, line.longitude]);
+        if (line.length === 0) {
+            line.push([53.9, 27.56]);
+        }
         // Creating a polyline.
         const myPolyline = new ymaps.Polyline(
             // Specifying the coordinates of the vertices.
-            route.lines.map(line => [line.latitude, line.longitude]),
+            line,
             {}, {
             strokeColor: "#00000088",
             // The line width.
@@ -151,6 +155,14 @@ async function init() {
     });
 
     routeAddBtn.addEventListener('click', function() {
+        inputs.id.value = "";
+        inputs.animals.checked = false;
+        inputs.approved.checked = false;
+        inputs.children.checked = false;
+        inputs.disabilities.checked = false;
+        inputs.minutes.value = "";
+        inputs.title.value = "";
+        inputs.description.value = "";
         editRouteModal.style.display = "block";
     });
 
