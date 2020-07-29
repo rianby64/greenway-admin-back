@@ -28,6 +28,7 @@ async function init() {
         approved: routeForm.querySelector('[name=approved]'),
         children: routeForm.querySelector('[name=children]'),
         disabilities: routeForm.querySelector('[name=disabilities]'),
+        distance: routeForm.querySelector('[name=distance]'),
         minutes: routeForm.querySelector('[name=minutes]'),
         title: routeForm.querySelector('[name=title]'),
         description: routeForm.querySelector('[name=description]')
@@ -67,6 +68,7 @@ async function init() {
         inputs.approved.checked = route.approved;
         inputs.children.checked = route.children;
         inputs.disabilities.checked = route.disabilities;
+        inputs.distance.value = route.distance;
         inputs.minutes.value = route.minutes;
         inputs.title.value = route.title;
         inputs.description.value = route.description;
@@ -105,6 +107,7 @@ async function init() {
         });
 
         myMap.geoObjects.add(myPolyline);
+        inputs.distance.value = Math.round(myPolyline.geometry.getDistance() / 10) / 100;
 
         myPolyline.events.add(['editorstatechange'], e => {
             const coords = e.originalEvent.target.geometry.getCoordinates();
@@ -139,6 +142,7 @@ async function init() {
             routeEditBtn.hidden = false;
             routeEditPathFinishBtn.hidden = true;
             routeEditPathCancelBtn.hidden = true;
+            inputs.distance.value = Math.round(myPolyline.geometry.getDistance() / 10) / 100;
         }
         routeEditPathBtn.addEventListener('click', listener1);
         routeEditPathFinishBtn.addEventListener('click', listener2);
@@ -160,6 +164,7 @@ async function init() {
         inputs.approved.checked = false;
         inputs.children.checked = false;
         inputs.disabilities.checked = false;
+        inputs.distance.value = "";
         inputs.minutes.value = "";
         inputs.title.value = "";
         inputs.description.value = "";
@@ -179,6 +184,7 @@ async function init() {
         form.children = form.children === "on" ? true : false;
         form.disabilities = form.disabilities === "on" ? true : false;
         form.minutes = Number(form.minutes);
+        form.distance = Number(form.distance);
 
         const errorDiv = document.querySelector('#route-edit-modal #errors');
 

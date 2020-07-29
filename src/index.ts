@@ -107,6 +107,7 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
       lines: lines.map(line => {
         return { latitude: line.latitude, longitude: line.longitude }
       }),
+      distance: routeRef.get('distance') as Number,
       minutes: routeRef.get('minutes') as Number,
       title: routeRef.get('title') as String,
       types
@@ -149,6 +150,7 @@ app.put('/api/routes/:id', async function(req, res) {
     approved: boolean;
     children: boolean;
     disabilities: boolean;
+    distance: number;
     minutes: number;
     title: string;
     description: string;
@@ -174,6 +176,7 @@ app.post('/api/routes', async function(req, res) {
     approved: boolean;
     children: boolean;
     disabilities: boolean;
+    distance: number;
     minutes: number;
     title: string;
     description: string;
