@@ -51,10 +51,20 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
       dots: dotsRef ? await Promise.all(dotsRef.map(async dotRef => {
         const dot = await dotRef.get();
         const pos = dot.get('position') as FirebaseFirestore.GeoPoint;
+        const dottypeRef = await dot.get('type') as FirebaseFirestore.DocumentReference;
+        let dottypeId = '';
+        let dottypeTitle = '';
+        if (dottypeRef) {
+          const dottype = await dottypeRef.get();
+          dottypeId = dottype.id;
+          dottypeTitle = dottype.get('title');
+        }
         return {
           [dotRef.id]: {
             latitude: pos.latitude,
             longitude: pos.longitude,
+            type: dottypeId,
+            title: dottypeTitle
           }
         }
       })) : [],
