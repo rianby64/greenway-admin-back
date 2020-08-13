@@ -36,7 +36,7 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
         const category = await categoryRef.get();
         return {
           [categoryRef.id]: {
-            [category.id]: category.get('title') as String
+            title: category.get('title') as String
           }
         };
       })) : [],
