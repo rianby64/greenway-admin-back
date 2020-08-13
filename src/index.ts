@@ -19,45 +19,36 @@ initializeApp({
 const db = firestore();
 
 async function getRoutes(db: FirebaseFirestore.Firestore) {
-  let categories: {
-    [x: string]: {
-      [x: string]: String;
-    };
-  }[]
-  let dots: {
-    [key: string]: {
-      latitude: number;
-      longitude: number;
-    };
-  }[];
-  let types: {
-    [key: string]: {
-      title: String;
-    };
-  }[];
-  let difficulty: {
-    [key: string]: {
-      title: String;
-    };
-  };
-
   const routesRef = await db.collection('routes').get();
   const routes = await Promise.all(routesRef.docs.map(async routeRef => {
-    const categoriesRef = routeRef.get('categories') as FirebaseFirestore.DocumentReference[];
-    if (categoriesRef) {
-      categories = await Promise.all(categoriesRef.map(async categoryRef => {
+    const categoriesRef = await routeRef.get('categories') as FirebaseFirestore.DocumentReference[];
+    const dotsRef = await routeRef.get('dots') as FirebaseFirestore.DocumentReference[];
+    const images = await routeRef.get('images') as String[];
+    const lines = await routeRef.get('lines') as FirebaseFirestore.GeoPoint[];
+    const typesRef = await routeRef.get('types') as FirebaseFirestore.DocumentReference[];
+    const difficultyRef = await routeRef.get('difficulty') as FirebaseFirestore.DocumentReference;
+
+    return {
+      id: routeRef.id,
+      animals: routeRef.get('animals') as Boolean,
+      approved: routeRef.get('approved') as Boolean,
+      categories: categoriesRef ? await Promise.all(categoriesRef.map(async categoryRef => {
         const category = await categoryRef.get();
         return {
           [categoryRef.id]: {
             [category.id]: category.get('title') as String
           }
         };
-      }));
-    }
-
-    const dotsRef = routeRef.get('dots') as FirebaseFirestore.DocumentReference[];
-    if (dotsRef) {
-      dots = await Promise.all(dotsRef.map(async dotRef => {
+      })) : [],
+      children: routeRef.get('children') as Boolean,
+      description: routeRef.get('description') as String,
+      difficulty: difficultyRef ? {
+        [difficultyRef.id]: {
+          title: (await difficultyRef.get()).get('title') as String
+        }
+      } : {},
+      disabilities: routeRef.get('disabilities') as Boolean,
+      dots: dotsRef ? await Promise.all(dotsRef.map(async dotRef => {
         const dot = await dotRef.get();
         const pos = dot.get('position') as FirebaseFirestore.GeoPoint;
         return {
@@ -66,43 +57,7 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
             longitude: pos.longitude,
           }
         }
-      }));
-    }
-
-    const images = await routeRef.get('images') as String[];
-    const lines = await routeRef.get('lines') as FirebaseFirestore.GeoPoint[];
-
-    const typesRef = routeRef.get('types') as FirebaseFirestore.DocumentReference[];
-    if (typesRef) {
-      types = await Promise.all(typesRef.map(async typeRef => {
-        const type = await typeRef.get();
-        return {
-          [typeRef.id]: {
-            title: type.get('title') as String
-          }
-        }
-      }));
-    }
-
-    const difficultyRef = routeRef.get('difficulty') as FirebaseFirestore.DocumentReference;
-    if (difficultyRef) {
-      difficulty = {
-        [difficultyRef.id]: {
-          title: (await difficultyRef.get()).get('title') as String
-        }
-      }
-    }
-
-    return {
-      id: routeRef.id,
-      animals: routeRef.get('animals') as Boolean,
-      approved: routeRef.get('approved') as Boolean,
-      categories,
-      children: routeRef.get('children') as Boolean,
-      description: routeRef.get('description') as String,
-      difficulty,
-      disabilities: routeRef.get('disabilities') as Boolean,
-      dots,
+      })) : [],
       images,
       lines: lines.map(line => {
         return { latitude: line.latitude, longitude: line.longitude }
@@ -110,7 +65,14 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
       distance: routeRef.get('distance') as Number,
       minutes: routeRef.get('minutes') as Number,
       title: routeRef.get('title') as String,
-      types
+      types: typesRef ? await Promise.all(typesRef.map(async typeRef => {
+        const type = await typeRef.get();
+        return {
+          [typeRef.id]: {
+            title: type.get('title') as String
+          }
+        }
+      })) : []
     };
   }));
 

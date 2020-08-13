@@ -106,7 +106,14 @@ async function init() {
             }
         });
 
+        myPlacemark = new ymaps.Placemark([53.9, 27.56], {
+            hintContent: 'Start'
+        }, {
+            preset: 'islands#blueFoodIcon'
+        });
+
         myMap.geoObjects.add(myPolyline);
+        myMap.geoObjects.add(myPlacemark);
         inputs.distance.value = Math.round(myPolyline.geometry.getDistance() / 10) / 100;
 
         myPolyline.events.add(['editorstatechange'], e => {
