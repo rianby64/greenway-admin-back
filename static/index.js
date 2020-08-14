@@ -106,14 +106,22 @@ async function init() {
             }
         });
 
-        myPlacemark = new ymaps.Placemark([53.9, 27.56], {
-            hintContent: 'Start'
-        }, {
-            preset: 'islands#blueFoodIcon'
-        });
+        if (route.dots) {
+            route.dots.map(dotobj => {
+                const id = Object.keys(dotobj)[0];
+                if (id) {
+                    const dot = dotobj[id];
+                    myPlacemark = new ymaps.Placemark([dot.latitude, dot.longitude], {
+                        hintContent: dot.title
+                    }, {
+                        preset: 'islands#blueFoodIcon'
+                    });
+                    myMap.geoObjects.add(myPlacemark);
+                }
+            })
+        }
 
         myMap.geoObjects.add(myPolyline);
-        myMap.geoObjects.add(myPlacemark);
         inputs.distance.value = Math.round(myPolyline.geometry.getDistance() / 10) / 100;
 
         myPolyline.events.add(['editorstatechange'], e => {
