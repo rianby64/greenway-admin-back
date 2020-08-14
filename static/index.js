@@ -9,8 +9,6 @@ async function init() {
         searchControlProvider: 'yandex#search'
     });
 
-    window.myMap = myMap;
-
     const routeAddBtn = document.querySelector('#route-add');
     const routesList = document.querySelector('#routes-list');
     const routeInput = document.querySelector('#route-input');
@@ -20,6 +18,9 @@ async function init() {
     const routeEditPathBtn = document.querySelector('#route-edit-path');
     const routeEditPathFinishBtn = document.querySelector('#route-edit-path-finish');
     const routeEditPathCancelBtn = document.querySelector('#route-edit-path-cancel');
+    const routeEditDotsBtn = document.querySelector('#route-edit-dots');
+    const routeEditDotsFinishBtn = document.querySelector('#route-edit-dots-finish');
+    const routeEditDotsCancelBtn = document.querySelector('#route-edit-dots-cancel');
     const routes = await fetch('/api/routes').then(routes => routes.json());
 
     const inputs = {
@@ -45,18 +46,24 @@ async function init() {
     }
     populateRoutesInDataList();
 
-    let listener1 = null;
-    let listener2 = null;
-    let listener3 = null;
+    let listenerEditRoutePath = null;
+    let listenerEditRoutePathFinish = null;
+    let listenerEditRoutePathCancel = null;
+    let listenerEditRouteDots = null;
+    let listenerEditRouteDotsFinish = null;
+    let listenerEditRouteDotsCancel = null;
 
     routeInput.addEventListener('change', (e) => {
         const id = e.target.value;
         const route = routes.find(route => route.id === id);
 
-        routeEditPathFinishBtn.hidden = true;
         routeEditBtn.hidden = true;
         routeEditPathBtn.hidden = true;
+        routeEditPathFinishBtn.hidden = true;
         routeEditPathCancelBtn.hidden = true;
+        routeEditDotsBtn.hidden = true;
+        routeEditDotsFinishBtn.hidden = true;
+        routeEditDotsCancelBtn.hidden = true;
         routeSelectedLabel.textContent = '-';
 
         if (!route) {
@@ -74,9 +81,14 @@ async function init() {
         inputs.description.value = route.description;
 
         myMap.geoObjects.removeAll();
-        listener1 && routeEditPathBtn.removeEventListener('click', listener1);
-        listener2 && routeEditPathFinishBtn.removeEventListener('click', listener2);
-        listener3 && routeEditPathCancelBtn.removeEventListener('click', listener3);
+        listenerEditRoutePath && routeEditPathBtn.removeEventListener('click', listenerEditRoutePath);
+        listenerEditRoutePathFinish && routeEditPathFinishBtn.removeEventListener('click', listenerEditRoutePathFinish);
+        listenerEditRoutePathCancel && routeEditPathCancelBtn.removeEventListener('click', listenerEditRoutePathCancel);
+
+        listenerEditRouteDots && routeEditDotsBtn.removeEventListener('click', listenerEditRouteDots);
+        listenerEditRouteDotsFinish && routeEditDotsFinishBtn.removeEventListener('click', listenerEditRouteDotsFinish);
+        listenerEditRouteDotsCancel && routeEditDotsCancelBtn.removeEventListener('click', listenerEditRouteDotsCancel);
+        routeEditDotsBtn.hidden = false;
         routeEditPathBtn.hidden = false;
         routeEditBtn.hidden = false;
         routeSelectedLabel.textContent = route.title;
@@ -106,17 +118,19 @@ async function init() {
             }
         });
 
+        const dots = [];
         if (route.dots) {
             route.dots.map(dotobj => {
                 const id = Object.keys(dotobj)[0];
                 if (id) {
                     const dot = dotobj[id];
-                    myPlacemark = new ymaps.Placemark([dot.latitude, dot.longitude], {
+                    mapDot = new ymaps.Placemark([dot.latitude, dot.longitude], {
                         hintContent: dot.title
                     }, {
                         preset: 'islands#blueFoodIcon'
                     });
-                    myMap.geoObjects.add(myPlacemark);
+                    dots.push({ mapDot, dot });
+                    myMap.geoObjects.add(mapDot);
                 }
             })
         }
@@ -134,15 +148,15 @@ async function init() {
             });
         });
 
-        listener1 = e => {
+        listenerEditRoutePath = e => {
             myPolyline.editor.startEditing();
             routeEditPathBtn.hidden = true;
             routeEditBtn.hidden = true;
             routeEditPathFinishBtn.hidden = false;
             routeEditPathCancelBtn.hidden = false;
         };
-        listener2 = e => {
-            listener3(e);
+        listenerEditRoutePathFinish = e => {
+            listenerEditRoutePathCancel(e);
             fetch(`/api/routes/${route.id}/lines`, {
                 method: 'put',
                 body: JSON.stringify(route.lines),
@@ -151,7 +165,15 @@ async function init() {
                 }
             });
         };
-        listener3 = e => {
+        listenerEditRouteDots = e => {
+            dots.forEach(dotobj => {
+                dotobj.mapDot.editor.startEditing();
+            });
+        }
+        listenerEditRouteDotsFinish = e => {
+            console.log('listenerEditRouteDotsFinish');
+        }
+        listenerEditRoutePathCancel = e => {
             myPolyline.editor.stopEditing();
             routeEditPathBtn.hidden = false;
             routeEditBtn.hidden = false;
@@ -159,9 +181,15 @@ async function init() {
             routeEditPathCancelBtn.hidden = true;
             inputs.distance.value = Math.round(myPolyline.geometry.getDistance() / 10) / 100;
         }
-        routeEditPathBtn.addEventListener('click', listener1);
-        routeEditPathFinishBtn.addEventListener('click', listener2);
-        routeEditPathCancelBtn.addEventListener('click', listener3);
+        listenerEditRouteDotsCancel = e => {
+            console.log('listenerEditRouteDotsCancel');
+        };
+        routeEditPathBtn.addEventListener('click', listenerEditRoutePath);
+        routeEditPathFinishBtn.addEventListener('click', listenerEditRoutePathFinish);
+        routeEditPathCancelBtn.addEventListener('click', listenerEditRoutePathCancel);
+        routeEditDotsBtn.addEventListener('click', listenerEditRouteDots);
+        routeEditDotsFinishBtn.addEventListener('click', listenerEditRouteDotsFinish);
+        routeEditDotsCancelBtn.addEventListener('click', listenerEditRouteDotsCancel);
     });
 
     const editRouteModal = document.getElementById("route-edit-modal");
