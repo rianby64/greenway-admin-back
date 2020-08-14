@@ -61,6 +61,7 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
         }
         return {
           [dotRef.id]: {
+            id: dotRef.id,
             latitude: pos.latitude,
             longitude: pos.longitude,
             type: dottypeId,

@@ -129,7 +129,7 @@ async function init() {
                     }, {
                         preset: 'islands#blueFoodIcon'
                     });
-                    dots.push({ mapDot, dot });
+                    dots.push({ mapDot, dot: {...dot} });
                     myMap.geoObjects.add(mapDot);
                 }
             })
@@ -150,10 +150,15 @@ async function init() {
 
         listenerEditRoutePath = e => {
             myPolyline.editor.startEditing();
-            routeEditPathBtn.hidden = true;
             routeEditBtn.hidden = true;
+
+            routeEditPathBtn.hidden = true;
             routeEditPathFinishBtn.hidden = false;
             routeEditPathCancelBtn.hidden = false;
+
+            routeEditDotsBtn.hidden = true;
+            routeEditDotsFinishBtn.hidden = true;
+            routeEditDotsCancelBtn.hidden = true;
         };
         listenerEditRoutePathFinish = e => {
             listenerEditRoutePathCancel(e);
@@ -165,24 +170,62 @@ async function init() {
                 }
             });
         };
+
         listenerEditRouteDots = e => {
+            routeEditBtn.hidden = true;
+
+            routeEditPathBtn.hidden = true;
+            routeEditPathFinishBtn.hidden = true;
+            routeEditPathCancelBtn.hidden = true;
+
+            routeEditDotsBtn.hidden = true;
+            routeEditDotsFinishBtn.hidden = false;
+            routeEditDotsCancelBtn.hidden = false;
             dots.forEach(dotobj => {
+                dotobj.handler = e => {
+                    const coordinates = e.originalEvent.target.geometry.getCoordinates();
+                    dotobj.dot.latitude = coordinates[0];
+                    dotobj.dot.longitude = coordinates[1];
+                };
                 dotobj.mapDot.editor.startEditing();
+                dotobj.mapDot.events.add(['dragend'], dotobj.handler);
             });
         }
         listenerEditRouteDotsFinish = e => {
-            console.log('listenerEditRouteDotsFinish');
+            listenerEditRouteDotsCancel(e);
+            console.log(dots); // this is what I'd like to upload, eventually
+            console.log(route.dots); // and this is the original data
+
         }
         listenerEditRoutePathCancel = e => {
             myPolyline.editor.stopEditing();
-            routeEditPathBtn.hidden = false;
+
             routeEditBtn.hidden = false;
+
+            routeEditPathBtn.hidden = false;
             routeEditPathFinishBtn.hidden = true;
             routeEditPathCancelBtn.hidden = true;
+
+            routeEditDotsBtn.hidden = false;
+            routeEditDotsFinishBtn.hidden = true;
+            routeEditDotsCancelBtn.hidden = true;
             inputs.distance.value = Math.round(myPolyline.geometry.getDistance() / 10) / 100;
         }
         listenerEditRouteDotsCancel = e => {
-            console.log('listenerEditRouteDotsCancel');
+            dots.forEach(dotobj => {
+                dotobj.mapDot.editor.stopEditing();
+                dotobj.mapDot.events.remove('dragend', dotobj.handler);
+            });
+
+            routeEditBtn.hidden = false;
+
+            routeEditPathBtn.hidden = false;
+            routeEditPathFinishBtn.hidden = true;
+            routeEditPathCancelBtn.hidden = true;
+
+            routeEditDotsBtn.hidden = false;
+            routeEditDotsFinishBtn.hidden = true;
+            routeEditDotsCancelBtn.hidden = true;
         };
         routeEditPathBtn.addEventListener('click', listenerEditRoutePath);
         routeEditPathFinishBtn.addEventListener('click', listenerEditRoutePathFinish);
