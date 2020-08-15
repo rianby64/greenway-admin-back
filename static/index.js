@@ -121,17 +121,14 @@ async function init() {
         const dots = [];
         if (route.dots) {
             route.dots.map(dotobj => {
-                const id = Object.keys(dotobj)[0];
-                if (id) {
-                    const dot = dotobj[id];
-                    mapDot = new ymaps.Placemark([dot.latitude, dot.longitude], {
-                        hintContent: dot.title
-                    }, {
-                        preset: 'islands#blueFoodIcon'
-                    });
-                    dots.push({ mapDot, dot: {...dot} });
-                    myMap.geoObjects.add(mapDot);
-                }
+                const dot = dotobj;
+                mapDot = new ymaps.Placemark([dot.position.latitude, dot.position.longitude], {
+                    hintContent: dot.title
+                }, {
+                    preset: 'islands#blueFoodIcon'
+                });
+                dots.push({ mapDot, dot: {...dot} });
+                myMap.geoObjects.add(mapDot);
             })
         }
 
@@ -184,17 +181,34 @@ async function init() {
             dots.forEach(dotobj => {
                 dotobj.handler = e => {
                     const coordinates = e.originalEvent.target.geometry.getCoordinates();
-                    dotobj.dot.latitude = coordinates[0];
-                    dotobj.dot.longitude = coordinates[1];
+                    dotobj.dot.position.latitude = coordinates[0];
+                    dotobj.dot.position.longitude = coordinates[1];
                 };
                 dotobj.mapDot.editor.startEditing();
                 dotobj.mapDot.events.add(['dragend'], dotobj.handler);
             });
         }
         listenerEditRouteDotsFinish = e => {
+            const dotobj = dots.reduce((acc, dot) => {
+                if (dot.dot.id) {
+                    acc[dot.dot.id] = dot.dot;
+                }
+                return acc;
+            }, {});
+            fetch(`/api/routes/${route.id}/dots`, {
+                method: 'put',
+                body: JSON.stringify(dotobj),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(() => {
+
+
+            });
+
             listenerEditRouteDotsCancel(e);
-            console.log(dots); // this is what I'd like to upload, eventually
-            console.log(route.dots); // and this is the original data
+            //console.log(dots); // this is what I'd like to upload, eventually
+            //console.log(route.dots); // and this is the original data
 
         }
         listenerEditRoutePathCancel = e => {

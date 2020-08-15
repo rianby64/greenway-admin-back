@@ -60,14 +60,15 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
           dottypeTitle = dottype.get('title');
         }
         return {
-          [dotRef.id]: {
-            id: dotRef.id,
+          id: dotRef.id,
+          description: await dot.get('description'),
+          position: {
             latitude: pos.latitude,
             longitude: pos.longitude,
-            type: dottypeId,
-            title: dottypeTitle
-          }
-        }
+          },
+          type: dottypeId,
+          title: dottypeTitle
+        };
       })) : [],
       images,
       lines: lines.map(line => {
@@ -95,7 +96,7 @@ app.get('/api/routes', async function(req, res) {
     const routes = await getRoutes(db);
     res.json(routes);
   } catch(e) {
-    res.json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
+    res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
   }
 });
 
@@ -111,7 +112,7 @@ app.put('/api/routes/:id/lines', async function(req, res) {
       success: true,
     });
   } catch(e) {
-    res.json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
+    res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
   }
 });
 
@@ -166,5 +167,44 @@ app.post('/api/routes', async function(req, res) {
     res.status(500).json(e);
   }
 });
+
+app.put('/api/routes/:id/dots', async function(req, res) {
+  const id = req.params.id;
+  const routeRef = await db.collection('routes').doc(id).get();
+  const dotRefs = await routeRef.get('dots') as FirebaseFirestore.DocumentReference[];
+
+  const dotsFromRequest = req.body as {
+     [id: string]: {
+      id: string;
+      description: string;
+      position: {
+        latitude:number;
+        longitude:number;
+      };
+      title: string;
+      type: string;
+    }
+  };
+
+  try {
+    await Promise.all(dotRefs.map((dotRef) => {
+      const dot = dotsFromRequest[dotRef.id];
+      if (dot) {
+        return dotRef.update({
+          title: dot.title,
+          position: new firestore.GeoPoint(dot.position.latitude, dot.position.longitude),
+          description: dot.description,
+        });
+      }
+    }));
+
+    res.json({
+      success: true,
+    });
+  } catch(e) {
+    res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
+  }
+});
+
 
 app.listen(3000);
