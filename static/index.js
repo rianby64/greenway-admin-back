@@ -188,28 +188,26 @@ async function init() {
                 dotobj.mapDot.events.add(['dragend'], dotobj.handler);
             });
         }
-        listenerEditRouteDotsFinish = e => {
+        listenerEditRouteDotsFinish = async (e) => {
+            listenerEditRouteDotsCancel(e);
+            if (dots.length === 0) return;
             const dotobj = dots.reduce((acc, dot) => {
                 if (dot.dot.id) {
                     acc[dot.dot.id] = dot.dot;
                 }
                 return acc;
             }, {});
-            fetch(`/api/routes/${route.id}/dots`, {
-                method: 'put',
-                body: JSON.stringify(dotobj),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }).then(() => {
-
-
-            });
-
-            listenerEditRouteDotsCancel(e);
-            //console.log(dots); // this is what I'd like to upload, eventually
-            //console.log(route.dots); // and this is the original data
-
+            try {
+                await fetch(`/api/routes/${route.id}/dots`, {
+                    method: 'put',
+                    body: JSON.stringify(dotobj),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+            } catch(e) {
+                console.error(e);
+            }
         }
         listenerEditRoutePathCancel = e => {
             myPolyline.editor.stopEditing();
