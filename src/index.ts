@@ -191,7 +191,6 @@ app.put('/api/routes/:id/dots', async function(req, res) {
       const dot = dotsFromRequest[dotRef.id];
       if (dot) {
         return dotRef.update({
-          title: dot.title,
           position: new firestore.GeoPoint(dot.position.latitude, dot.position.longitude),
           description: dot.description,
         });

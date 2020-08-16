@@ -32,7 +32,6 @@ async function init() {
     const dotsForm = document.querySelector('#dots-edit-form');
     const inputsDots = {
         id: dotsForm.querySelector('[name=id]'),
-        title: dotsForm.querySelector('[name=title]'),
         description: dotsForm.querySelector('[name=description]'),
         type: dotsForm.querySelector('[name=type]'),
     };
@@ -213,7 +212,6 @@ async function init() {
                 dotobj.handlerClick = e => {
                     editDotsModal.style.display = 'block';
                     inputsDots.id.value = dotobj.dot.id;
-                    inputsDots.title.value = dotobj.dot.title;
                     inputsDots.description.value = dotobj.dot.description;
                     inputsDots.type.value = dotobj.dot.type;
                 }
