@@ -205,5 +205,50 @@ app.put('/api/routes/:id/dots', async function(req, res) {
   }
 });
 
+app.post('/api/routes/:id/dots', async function(req, res) {
+  const id = req.params.id;
+  const routeRef = await db.collection('routes').doc(id);
+  const dotTypesRef = await db.collection('dot_types').get();
+
+  const dotsFromRequest = req.body as {
+    id: string;
+    description: string;
+    position: {
+      latitude:number;
+      longitude:number;
+    };
+    title: string;
+    type: string;
+  }[];
+
+  try {
+    const dotRefs = dotsFromRequest.map(async (dotFromRequest) => {
+      const dotTypeRef = dotTypesRef.docs.find(dotTypeRef => dotTypeRef.id === dotFromRequest.type);
+      const createdDotRef = db.collection('dots').doc();
+      await createdDotRef.create({
+        description: dotFromRequest.description,
+        position: new firestore.GeoPoint(dotFromRequest.position.latitude, dotFromRequest.position.longitude),
+        type: dotTypeRef?.ref,
+      });
+      return await (await createdDotRef.get()).ref.get();
+    });
+
+    dotRefs.forEach(async (dotRef) => {
+      const dot = await dotRef;
+      console.log(dot)
+    })
+    /*
+    routeRef.update({
+      dots: dotRefs
+    });
+    */
+
+    res.json({
+      success: true,
+    });
+  } catch(e) {
+    res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
+  }
+});
 
 app.listen(3000);

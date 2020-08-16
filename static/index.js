@@ -19,6 +19,7 @@ async function init() {
     const routeEditPathFinishBtn = document.querySelector('#route-edit-path-finish');
     const routeEditPathCancelBtn = document.querySelector('#route-edit-path-cancel');
     const routeEditDotsBtn = document.querySelector('#route-edit-dots');
+    const routeEditDotsAddBtn = document.querySelector('#route-edit-dots-add');
     const routeEditDotsFinishBtn = document.querySelector('#route-edit-dots-finish');
     const routeEditDotsCancelBtn = document.querySelector('#route-edit-dots-cancel');
     const routes = await fetch('/api/routes').then(routes => routes.json());
@@ -46,6 +47,25 @@ async function init() {
             found.dot.description = inputsDots.description.value;
         }
         editDotsModal.style.display = "none";
+    });
+    routeEditDotsAddBtn.addEventListener('click', e => {
+        const dot = {
+            id: null,
+            description: 'NEW DESCRIPTION',
+            position: {
+                latitude: 53.9,
+                longitude: 27.56
+            },
+            title: 'NEW DOT',
+            type: 'route_start',
+        };
+        const mapDot = new ymaps.Placemark([dot.position.latitude, dot.position.longitude], {
+            hintContent: dot.title
+        }, {
+            preset: 'islands#blueFoodIcon'
+        });
+        dots.push({ mapDot, dot: {...dot} });
+        myMap.geoObjects.add(mapDot);
     });
 
     const inputsRoute = {
@@ -87,6 +107,7 @@ async function init() {
         routeEditPathFinishBtn.hidden = true;
         routeEditPathCancelBtn.hidden = true;
         routeEditDotsBtn.hidden = true;
+        routeEditDotsAddBtn.hidden = true;
         routeEditDotsFinishBtn.hidden = true;
         routeEditDotsCancelBtn.hidden = true;
         routeSelectedLabel.textContent = '-';
@@ -115,6 +136,7 @@ async function init() {
         listenerEditRouteDotsCancel && routeEditDotsCancelBtn.removeEventListener('click', listenerEditRouteDotsCancel);
         routeEditDotsBtn.hidden = false;
         routeEditPathBtn.hidden = false;
+        routeEditDotsAddBtn.hidden = false;
         routeEditBtn.hidden = false;
         routeSelectedLabel.textContent = route.title;
 
@@ -147,7 +169,7 @@ async function init() {
         if (route.dots) {
             route.dots.map(dotobj => {
                 const dot = dotobj;
-                mapDot = new ymaps.Placemark([dot.position.latitude, dot.position.longitude], {
+                const mapDot = new ymaps.Placemark([dot.position.latitude, dot.position.longitude], {
                     hintContent: dot.title
                 }, {
                     preset: 'islands#blueFoodIcon'
@@ -179,6 +201,7 @@ async function init() {
             routeEditPathCancelBtn.hidden = false;
 
             routeEditDotsBtn.hidden = true;
+            routeEditDotsAddBtn.hidden = true;
             routeEditDotsFinishBtn.hidden = true;
             routeEditDotsCancelBtn.hidden = true;
         };
@@ -201,6 +224,7 @@ async function init() {
             routeEditPathCancelBtn.hidden = true;
 
             routeEditDotsBtn.hidden = true;
+            routeEditDotsAddBtn.hidden = true;
             routeEditDotsFinishBtn.hidden = false;
             routeEditDotsCancelBtn.hidden = false;
             dots.forEach(dotobj => {
@@ -229,10 +253,23 @@ async function init() {
                 }
                 return acc;
             }, {});
+            const newdots = dots.filter(dot => dot.dot.id === null).map(dot => dot.dot);
+            console.log();
             try {
                 await fetch(`/api/routes/${route.id}/dots`, {
                     method: 'put',
                     body: JSON.stringify(dotobj),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+            } catch(e) {
+                console.error(e);
+            }
+            try {
+                await fetch(`/api/routes/${route.id}/dots`, {
+                    method: 'post',
+                    body: JSON.stringify(newdots),
                     headers: {
                         'Content-Type': 'application/json'
                     }
@@ -251,6 +288,7 @@ async function init() {
             routeEditPathCancelBtn.hidden = true;
 
             routeEditDotsBtn.hidden = false;
+            routeEditDotsAddBtn.hidden = false;
             routeEditDotsFinishBtn.hidden = true;
             routeEditDotsCancelBtn.hidden = true;
             inputsRoute.distance.value = Math.round(myPolyline.geometry.getDistance() / 10) / 100;
@@ -269,6 +307,7 @@ async function init() {
             routeEditPathCancelBtn.hidden = true;
 
             routeEditDotsBtn.hidden = false;
+            routeEditDotsAddBtn.hidden = true;
             routeEditDotsFinishBtn.hidden = true;
             routeEditDotsCancelBtn.hidden = true;
         };
