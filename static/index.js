@@ -37,6 +37,18 @@ async function init() {
         type: dotsForm.querySelector('[name=type]'),
     };
 
+    const dots = [];
+    dotsForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const found = dots.find(dot => dot.dot.id === inputsDots.id.value);
+        if (found) {
+            found.dot.title = inputsDots.title.value;
+            found.dot.type = inputsDots.type.value;
+            found.dot.description = inputsDots.description.value;
+        }
+        editDotsModal.style.display = "none";
+    });
+
     const inputsRoute = {
         id: routeForm.querySelector('[name=id]'),
         animals: routeForm.querySelector('[name=animals]'),
@@ -132,7 +144,7 @@ async function init() {
             }
         });
 
-        const dots = [];
+        dots.length = 0;
         if (route.dots) {
             route.dots.map(dotobj => {
                 const dot = dotobj;
