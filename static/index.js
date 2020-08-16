@@ -23,7 +23,21 @@ async function init() {
     const routeEditDotsCancelBtn = document.querySelector('#route-edit-dots-cancel');
     const routes = await fetch('/api/routes').then(routes => routes.json());
 
-    const inputs = {
+    const editDotsModal = document.getElementById("dots-edit-modal");
+    const editDotsModalClose = editDotsModal.querySelector("#dots-edit-modal-close");
+    editDotsModalClose.addEventListener('click', function() {
+        editDotsModal.style.display = "none";
+    });
+
+    const dotsForm = document.querySelector('#dots-edit-form');
+    const inputsDots = {
+        id: dotsForm.querySelector('[name=id]'),
+        title: dotsForm.querySelector('[name=title]'),
+        description: dotsForm.querySelector('[name=description]'),
+        type: dotsForm.querySelector('[name=type]'),
+    };
+
+    const inputsRoute = {
         id: routeForm.querySelector('[name=id]'),
         animals: routeForm.querySelector('[name=animals]'),
         approved: routeForm.querySelector('[name=approved]'),
@@ -70,15 +84,15 @@ async function init() {
             return;
         }
 
-        inputs.id.value = route.id;
-        inputs.animals.checked = route.animals;
-        inputs.approved.checked = route.approved;
-        inputs.children.checked = route.children;
-        inputs.disabilities.checked = route.disabilities;
-        inputs.distance.value = route.distance;
-        inputs.minutes.value = route.minutes;
-        inputs.title.value = route.title;
-        inputs.description.value = route.description;
+        inputsRoute.id.value = route.id;
+        inputsRoute.animals.checked = route.animals;
+        inputsRoute.approved.checked = route.approved;
+        inputsRoute.children.checked = route.children;
+        inputsRoute.disabilities.checked = route.disabilities;
+        inputsRoute.distance.value = route.distance;
+        inputsRoute.minutes.value = route.minutes;
+        inputsRoute.title.value = route.title;
+        inputsRoute.description.value = route.description;
 
         myMap.geoObjects.removeAll();
         listenerEditRoutePath && routeEditPathBtn.removeEventListener('click', listenerEditRoutePath);
@@ -133,7 +147,7 @@ async function init() {
         }
 
         myMap.geoObjects.add(myPolyline);
-        inputs.distance.value = Math.round(myPolyline.geometry.getDistance() / 10) / 100;
+        inputsRoute.distance.value = Math.round(myPolyline.geometry.getDistance() / 10) / 100;
 
         myPolyline.events.add(['editorstatechange'], e => {
             const coords = e.originalEvent.target.geometry.getCoordinates();
@@ -179,13 +193,21 @@ async function init() {
             routeEditDotsFinishBtn.hidden = false;
             routeEditDotsCancelBtn.hidden = false;
             dots.forEach(dotobj => {
-                dotobj.handler = e => {
+                dotobj.handlerDragend = e => {
                     const coordinates = e.originalEvent.target.geometry.getCoordinates();
                     dotobj.dot.position.latitude = coordinates[0];
                     dotobj.dot.position.longitude = coordinates[1];
                 };
+                dotobj.handlerClick = e => {
+                    editDotsModal.style.display = 'block';
+                    inputsDots.id.value = dotobj.dot.id;
+                    inputsDots.title.value = dotobj.dot.title;
+                    inputsDots.description.value = dotobj.dot.description;
+                    inputsDots.type.value = dotobj.dot.type;
+                }
                 dotobj.mapDot.editor.startEditing();
-                dotobj.mapDot.events.add(['dragend'], dotobj.handler);
+                dotobj.mapDot.events.add(['dragend'], dotobj.handlerDragend);
+                dotobj.mapDot.events.add(['click'], dotobj.handlerClick);
             });
         }
         listenerEditRouteDotsFinish = async (e) => {
@@ -221,12 +243,13 @@ async function init() {
             routeEditDotsBtn.hidden = false;
             routeEditDotsFinishBtn.hidden = true;
             routeEditDotsCancelBtn.hidden = true;
-            inputs.distance.value = Math.round(myPolyline.geometry.getDistance() / 10) / 100;
+            inputsRoute.distance.value = Math.round(myPolyline.geometry.getDistance() / 10) / 100;
         }
         listenerEditRouteDotsCancel = e => {
             dots.forEach(dotobj => {
                 dotobj.mapDot.editor.stopEditing();
-                dotobj.mapDot.events.remove('dragend', dotobj.handler);
+                dotobj.mapDot.events.remove('dragend', dotobj.handlerDragend);
+                dotobj.mapDot.events.remove('click', dotobj.handlerClick);
             });
 
             routeEditBtn.hidden = false;
@@ -248,24 +271,21 @@ async function init() {
     });
 
     const editRouteModal = document.getElementById("route-edit-modal");
-
-    // Get the <span> element that closes the modal
-    const editRouteModalClose = document.getElementById("route-edit-modal-close");
-
+    const editRouteModalClose = editRouteModal.querySelector("#route-edit-modal-close");
     routeEditBtn.addEventListener('click', function() {
         editRouteModal.style.display = "block";
     });
 
     routeAddBtn.addEventListener('click', function() {
-        inputs.id.value = "";
-        inputs.animals.checked = false;
-        inputs.approved.checked = false;
-        inputs.children.checked = false;
-        inputs.disabilities.checked = false;
-        inputs.distance.value = "";
-        inputs.minutes.value = "";
-        inputs.title.value = "";
-        inputs.description.value = "";
+        inputsRoute.id.value = "";
+        inputsRoute.animals.checked = false;
+        inputsRoute.approved.checked = false;
+        inputsRoute.children.checked = false;
+        inputsRoute.disabilities.checked = false;
+        inputsRoute.distance.value = "";
+        inputsRoute.minutes.value = "";
+        inputsRoute.title.value = "";
+        inputsRoute.description.value = "";
         editRouteModal.style.display = "block";
     });
 

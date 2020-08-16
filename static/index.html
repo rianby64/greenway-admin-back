@@ -73,6 +73,37 @@
     <div id="map"></div>
 
     <!-- The Modal -->
+    <div id="dots-edit-modal" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+        <span class="close" id="dots-edit-modal-close">&times;</span>
+        <div>
+            <form id="dots-edit-form">
+                <input type="hidden" name="id">
+                <div>
+                    <span>Type?</span>
+                    <input type="text" name="type">
+                </div>
+
+                <div>
+                    <span>Title?</span>
+                    <input type="text" name="title">
+                </div>
+
+                <div>
+                    <span>Description?</span>
+                    <input type="textarea" name="description">
+                </div>
+
+                <div>
+                    <span></span>
+                    <input type="submit">
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- The Modal -->
     <div id="route-edit-modal" class="modal">
         <!-- Modal content -->
         <div class="modal-content">
