@@ -307,7 +307,7 @@ async function init() {
             routeEditPathCancelBtn.hidden = true;
 
             routeEditDotsBtn.hidden = false;
-            routeEditDotsAddBtn.hidden = true;
+            routeEditDotsAddBtn.hidden = false;
             routeEditDotsFinishBtn.hidden = true;
             routeEditDotsCancelBtn.hidden = true;
         };
