@@ -198,9 +198,18 @@ app.put('/api/routes/:id/dots', async function(req, res) {
   };
 
   try {
+    const dotTypesRef = await db.collection('dot_types').get();
     await Promise.all(dotRefs.map((dotRef) => {
       const dot = dotsFromRequest[dotRef.id];
       if (dot) {
+        const dotTypeRef = dotTypesRef.docs.find(dotTypeRef => dotTypeRef.id === dot.type);
+        if (dotTypeRef) {
+          return dotRef.update({
+            position: new firestore.GeoPoint(dot.position.latitude, dot.position.longitude),
+            description: dot.description,
+            type: dotTypeRef?.ref,
+          });
+        }
         return dotRef.update({
           position: new firestore.GeoPoint(dot.position.latitude, dot.position.longitude),
           description: dot.description,
@@ -247,8 +256,9 @@ app.post('/api/routes/:id/dots', async function(req, res) {
       throw new Error(`dot from request ${JSON.stringify(dotFromRequest)} has an incorrect type`);
     });
 
+    const oldDots = (await routeRef.get()).get('dots');
     await routeRef.update({
-      dots: [...(await routeRef.get()).get('dots'), ...dotRefs]
+      dots: [...(oldDots || []), ...dotRefs]
     });
 
     res.json({

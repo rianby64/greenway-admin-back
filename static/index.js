@@ -11,6 +11,7 @@ async function init() {
 
     const routeAddBtn = document.querySelector('#route-add');
     const routesList = document.querySelector('#routes-list');
+    const dotTypeList = document.querySelector('#dottype-list');
     const routeInput = document.querySelector('#route-input');
     const routeSelectedLabel = document.querySelector('#route-selected-title');
     const routeEditBtn = document.querySelector('#route-edit');
@@ -23,6 +24,7 @@ async function init() {
     const routeEditDotsFinishBtn = document.querySelector('#route-edit-dots-finish');
     const routeEditDotsCancelBtn = document.querySelector('#route-edit-dots-cancel');
     const routes = await fetch('/api/routes').then(routes => routes.json());
+    const dotTypes = await fetch('/api/dot_types').then(dottypes => dottypes.json());
 
     const editDotsModal = document.getElementById("dots-edit-modal");
     const editDotsModalClose = editDotsModal.querySelector("#dots-edit-modal-close");
@@ -42,7 +44,6 @@ async function init() {
         e.preventDefault();
         const found = dots.find(dot => dot.dot.id === inputsDots.id.value);
         if (found) {
-            found.dot.title = inputsDots.title.value;
             found.dot.type = inputsDots.type.value;
             found.dot.description = inputsDots.description.value;
         }
@@ -90,6 +91,17 @@ async function init() {
         });
     }
     populateRoutesInDataList();
+
+    function populateDotTypesInDataList() {
+        dotTypeList.innerHTML = '';
+        dotTypes.forEach(dotType => {
+            const option = document.createElement('option');
+            option.label = dotType.title;
+            option.value = dotType.id;
+            dotTypeList.appendChild(option);
+        });
+    }
+    populateDotTypesInDataList();
 
     let listenerEditRoutePath = null;
     let listenerEditRoutePathFinish = null;
@@ -253,29 +265,32 @@ async function init() {
                 }
                 return acc;
             }, {});
-            const newdots = dots.filter(dot => dot.dot.id === null).map(dot => dot.dot);
-            console.log();
-            try {
-                await fetch(`/api/routes/${route.id}/dots`, {
-                    method: 'put',
-                    body: JSON.stringify(dotobj),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-            } catch(e) {
-                console.error(e);
+            if (Object.keys(dotobj).length) {
+                try {
+                    await fetch(`/api/routes/${route.id}/dots`, {
+                        method: 'put',
+                        body: JSON.stringify(dotobj),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                } catch(e) {
+                    console.error(e);
+                }
             }
-            try {
-                await fetch(`/api/routes/${route.id}/dots`, {
-                    method: 'post',
-                    body: JSON.stringify(newdots),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-            } catch(e) {
-                console.error(e);
+            const newdots = dots.filter(dot => dot.dot.id === null).map(dot => dot.dot);
+            if (newdots.length) {
+                try {
+                    await fetch(`/api/routes/${route.id}/dots`, {
+                        method: 'post',
+                        body: JSON.stringify(newdots),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                } catch(e) {
+                    console.error(e);
+                }
             }
         }
         listenerEditRoutePathCancel = e => {
