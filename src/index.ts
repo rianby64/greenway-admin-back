@@ -168,6 +168,17 @@ app.post('/api/routes', async function(req, res) {
   }
 });
 
+app.get('/api/dot_types', async function(req, res) {
+  const dotTypeRefs = await db.collection('dot_types').get();
+  res.json(dotTypeRefs.docs.map(dotTypeRef => {
+    const title = dotTypeRef.get('title');
+    return {
+      id: dotTypeRef.id,
+      title
+    };
+  }));
+});
+
 app.put('/api/routes/:id/dots', async function(req, res) {
   const id = req.params.id;
   const routeRef = await db.collection('routes').doc(id).get();
