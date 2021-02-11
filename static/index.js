@@ -39,6 +39,15 @@ async function init() {
         type: dotsForm.querySelector('[name=type]'),
     };
 
+    editDotsModal.querySelector('#delete-dot').addEventListener('click', () => {
+        fetch(`/api/routes/${inputsRoute.id.value}/dot/${inputsDots.id.value}`, {
+            method: 'delete',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    })
+
     const dots = [];
     dotsForm.addEventListener('submit', e => {
         e.preventDefault();

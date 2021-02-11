@@ -225,6 +225,28 @@ app.put('/api/routes/:id/dots', async function(req, res) {
   }
 });
 
+app.delete('/api/routes/:id/dot/:iddot', async function(req, res) {
+
+  const id = req.params.id;
+  const iddot = req.params.iddot;
+  const routeRef = db.collection('routes').doc(id);
+
+  try {
+    const oldDots = (await routeRef.get()).get('dots') as FirebaseFirestore.DocumentReference[];
+        
+    oldDots.filter(dot => dot.id === iddot).forEach(async (dot) => await dot.delete())
+
+    await db.collection('dots').doc(iddot).delete();
+    
+    res.json({
+      success: true,
+    });
+  } catch(e) {
+    res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
+  }
+
+})
+
 app.post('/api/routes/:id/dots', async function(req, res) {
   const id = req.params.id;
   const routeRef = await db.collection('routes').doc(id);
