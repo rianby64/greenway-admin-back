@@ -1,9 +1,10 @@
 import express, { Router } from 'express';
 import bodyParser from 'body-parser';
 import { initializeApp, credential, firestore } from 'firebase-admin';
+import './fire-keys.json';
 
 const app = express();
-const key = require('./fire-key.json');
+const key = require('./fire-keys.json');
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -12,7 +13,7 @@ app.use(bodyParser.raw());
 
 initializeApp({
   credential: credential.cert(key),
-  // databaseURL: "https://thegreenway-f50d0.firebaseio.com",
+  databaseURL: 'https://thegreenway-f50d0.firebaseio.com',
 });
 
 const db = firestore();
@@ -57,12 +58,12 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
         children: routeRef.get('children') as Boolean,
         description: routeRef.get('description') as String,
         difficulty: (await difficultyRef.get()).id,
-          // ? {
-          //     [difficultyRef.id]: {
-          //       title: (await difficultyRef.get()).get('title') as String,
-          //     },
-          //   }
-          // : {},
+        // ? {
+        //     [difficultyRef.id]: {
+        //       title: (await difficultyRef.get()).get('title') as String,
+        //     },
+        //   }
+        // : {},
         disabilities: routeRef.get('disabilities') as Boolean,
         dots: dotsRef
           ? await Promise.all(
@@ -120,6 +121,8 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
 }
 
 app.get('/api/routes', async function (req, res) {
+  console.log('get');
+
   try {
     const routes = await getRoutes(db);
     res.json(routes);
@@ -181,7 +184,8 @@ app.put('/api/routes/:id', async function (req, res) {
     animals?: boolean;
     approved?: boolean;
     children?: boolean;
-    disabilities?: boolean;
+    wheelChair?: boolean;
+    visuallyImpaired?: boolean;
     distance?: number;
     minutes?: number;
     title?: string;
@@ -194,7 +198,8 @@ app.put('/api/routes/:id', async function (req, res) {
     animals: !!req.body.animals,
     approved: !!req.body.approved,
     children: !!req.body.children,
-    disabilities: !!req.body.disabilities,
+    wheelChair: !!req.body.wheelChair,
+    visuallyImpaired: !!req.body.visuallyImpaired,
     distance: Number(req.body.distance),
     minutes: Number(req.body.minutes),
     title: req.body.title,
@@ -217,6 +222,8 @@ app.put('/api/routes/:id', async function (req, res) {
 });
 
 app.post('/api/routes', async function (req, res) {
+  console.log('posted');
+
   const routeTypesRefs = await db.collection('travel_types').get();
   const routeCategoriesRefs = await db.collection('categories').get();
   const routeDifficultyRefs = await db.collection('difficulties').get();
@@ -252,7 +259,8 @@ app.post('/api/routes', async function (req, res) {
     animals?: boolean;
     approved?: boolean;
     children?: boolean;
-    disabilities?: boolean;
+    wheelChair?: boolean;
+    visuallyImpaired?: boolean;
     distance?: number;
     minutes?: number;
     title?: string;
@@ -265,7 +273,8 @@ app.post('/api/routes', async function (req, res) {
     animals: !!req.body.animals,
     approved: !!req.body.approved,
     children: !!req.body.children,
-    disabilities: !!req.body.disabilities,
+    wheelChair: !!req.body.wheelChair,
+    visuallyImpaired: !!req.body.visuallyImpaired,
     distance: Number(req.body.distance),
     minutes: Number(req.body.minutes),
     title: req.body.title,
@@ -402,14 +411,14 @@ app.put('/api/routes/:id/dots', async function (req, res) {
 app.delete('/api/routes/:id/dot/:iddot', async function (req, res) {
   const id = req.params.id;
   const iddot = req.params.iddot;
-  const routeRef = db.collection('routes').doc(id);  
+  const routeRef = db.collection('routes').doc(id);
   try {
     const oldDots = (await routeRef.get()).get(
       'dots'
     ) as FirebaseFirestore.DocumentReference[];
 
-    const filtredDots =  oldDots.filter((dot) => dot.id !== iddot);
-    await routeRef.update({dots: filtredDots});
+    const filtredDots = oldDots.filter((dot) => dot.id !== iddot);
+    await routeRef.update({ dots: filtredDots });
     await db.collection('dots').doc(iddot).delete();
 
     res.json({
@@ -434,11 +443,15 @@ app.post('/api/routes/:id/dots', async function (req, res) {
     type: string;
   }[];
 
-  const oldDots = (await routeRef.get()).get('dots') as FirebaseFirestore.DocumentReference[];
+  const oldDots = (await routeRef.get()).get(
+    'dots'
+  ) as FirebaseFirestore.DocumentReference[];
   if (oldDots) {
-    Promise.all(oldDots.map(oldDot => {
-      return db.collection('dots').doc(oldDot.id).delete();
-    }));
+    Promise.all(
+      oldDots.map((oldDot) => {
+        return db.collection('dots').doc(oldDot.id).delete();
+      })
+    );
   }
 
   try {
