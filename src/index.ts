@@ -186,7 +186,7 @@ app.put('/api/routes/:id', async function (req, res) {
     minutes?: number;
     title?: string;
     description?: string;
-    type?: Array<firestore.DocumentData>;
+    types?: Array<firestore.DocumentData>;
     categories?: Array<firestore.DocumentData>;
     durations?: Object;
     difficulty?: firestore.DocumentData;
@@ -199,7 +199,7 @@ app.put('/api/routes/:id', async function (req, res) {
     minutes: Number(req.body.minutes),
     title: req.body.title,
     description: req.body.description,
-    type: arrayOfTypeRef,
+    types: arrayOfTypeRef,
     categories: arrayOfCategoriesRef,
     durations: ObjectOfDurations,
     difficulty: difficultyRef,
@@ -257,7 +257,7 @@ app.post('/api/routes', async function (req, res) {
     minutes?: number;
     title?: string;
     description?: string;
-    type?: Array<firestore.DocumentData>;
+    types?: Array<firestore.DocumentData>;
     categories?: Array<firestore.DocumentData>;
     durations?: Object;
     difficulty?: firestore.DocumentData;
@@ -270,7 +270,7 @@ app.post('/api/routes', async function (req, res) {
     minutes: Number(req.body.minutes),
     title: req.body.title,
     description: req.body.description,
-    type: arrayOfTypeRef,
+    types: arrayOfTypeRef,
     categories: arrayOfCategoriesRef,
     durations: ObjectOfDurations,
     difficulty: difficultyRef,
