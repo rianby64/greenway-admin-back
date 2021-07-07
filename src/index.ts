@@ -64,7 +64,8 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
         //     },
         //   }
         // : {},
-        disabilities: routeRef.get('disabilities') as Boolean,
+        visuallyImpaired: routeRef.get('visuallyImpaired') as Boolean,
+        wheelChair: routeRef.get('wheelChair') as Boolean,
         dots: dotsRef
           ? await Promise.all(
               dotsRef.map(async (dotRef) => {
@@ -146,7 +147,7 @@ app.put('/api/routes/:id/lines', async function (req, res) {
   }
 });
 
-app.put('/api/routes/:id', async function (req, res) {
+app.put('/api/routes/:id', async function (req, res) {  
   const id = req.params.id;
   const routeTypesRefs = await db.collection('travel_types').get();
   const routeCategoriesRefs = await db.collection('categories').get();
