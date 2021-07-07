@@ -20,6 +20,7 @@ const db = firestore();
 
 async function getRoutes(db: FirebaseFirestore.Firestore) {
   const routesRef = await db.collection('routes').get();
+  const arrOfDistricts: Array<any> = [];
   const routes = await Promise.all(
     routesRef.docs.map(async (routeRef) => {
       const categoriesRef = (await routeRef.get(
@@ -122,9 +123,8 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
               districtsRef.map(async (districtRef) => {
                 const district = await districtRef.get();
                 return {
-                  [districtRef.id]: {
-                    title: district.get('title') as String,
-                  },
+                  title: district.get('title') as String,
+                  id: district.id as String,
                 };
               })
             )
@@ -294,7 +294,6 @@ app.post('/api/routes', async function (req, res) {
   req.body.durations.forEach((el: any) => {
     ObjectOfDurations[el.name] = parseInt(el.number);
   });
-
   const rowToSave: {
     animals?: boolean;
     approved?: boolean;
