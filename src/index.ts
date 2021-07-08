@@ -20,7 +20,6 @@ const db = firestore();
 
 async function getRoutes(db: FirebaseFirestore.Firestore) {
   const routesRef = await db.collection('routes').get();
-  const arrOfDistricts: Array<any> = [];
   const routes = await Promise.all(
     routesRef.docs.map(async (routeRef) => {
       const categoriesRef = (await routeRef.get(
@@ -52,9 +51,8 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
               categoriesRef.map(async (categoryRef) => {
                 const category = await categoryRef.get();
                 return {
-                  [categoryRef.id]: {
-                    title: category.get('title') as String,
-                  },
+                  title: category.get('title') as String,
+                  id: category.id,
                 };
               })
             )
@@ -111,9 +109,8 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
               typesRef.map(async (typeRef) => {
                 const type = await typeRef.get();
                 return {
-                  [typeRef.id]: {
-                    title: type.get('title') as String,
-                  },
+                  title: type.get('title') as String,
+                  id: type.id,
                 };
               })
             )
