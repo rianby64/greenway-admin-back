@@ -181,7 +181,6 @@ app.put('/api/routes/:id', async function (req, res) {
 
   let arrayOfDistrictsRef: Array<firestore.DocumentData> = [];
   req.body.districts.map((el: any) => {
-    console.log(el);
     districtsRefs.docs.map((elToFind) => {
       if (elToFind.id === el) {
         arrayOfDistrictsRef.push(elToFind.ref);
@@ -248,8 +247,6 @@ app.put('/api/routes/:id', async function (req, res) {
 });
 
 app.post('/api/routes', async function (req, res) {
-  console.log(req.body);
-
   const routeTypesRefs = await db.collection('travel_types').get();
   const routeCategoriesRefs = await db.collection('categories').get();
   const routeDifficultyRefs = await db.collection('difficulties').get();
@@ -271,7 +268,6 @@ app.post('/api/routes', async function (req, res) {
 
   let arrayOfDistrictsRef: Array<firestore.DocumentData> = [];
   req.body.districts.map((el: any) => {
-    console.log(el);
     districtsRefs.docs.map((elToFind) => {
       if (elToFind.id === el) {
         arrayOfDistrictsRef.push(elToFind.ref);
