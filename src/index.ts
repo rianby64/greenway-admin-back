@@ -13,7 +13,7 @@ app.use(bodyParser.raw());
 
 initializeApp({
   credential: credential.cert(key),
-  databaseURL: 'https://thegreenway-f50d0.firebaseio.com',
+  // databaseURL: 'https://thegreenway-f50d0.firebaseio.com',
 });
 
 const db = firestore();
