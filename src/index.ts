@@ -67,7 +67,7 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
         //   }
         // : {},
         visuallyImpaired: routeRef.get('visuallyImpaired') as Boolean,
-        wheelChair: routeRef.get('wheelChair') as Boolean,
+        wheelchair: routeRef.get('wheelchair') as Boolean,
         dots: dotsRef
           ? await Promise.all(
               dotsRef.map(async (dotRef) => {
@@ -207,7 +207,7 @@ app.put('/api/routes/:id', async function (req, res) {
     animals?: boolean;
     approved?: boolean;
     children?: boolean;
-    wheelChair?: boolean;
+    wheelchair?: boolean;
     visuallyImpaired?: boolean;
     distance?: number;
     minutes?: number;
@@ -222,7 +222,7 @@ app.put('/api/routes/:id', async function (req, res) {
     animals: !!req.body.animals,
     approved: !!req.body.approved,
     children: !!req.body.children,
-    wheelChair: !!req.body.wheelChair,
+    wheelchair: !!req.body.wheelChair,
     visuallyImpaired: !!req.body.visuallyImpaired,
     distance: Number(req.body.distance),
     minutes: Number(req.body.minutes),
@@ -291,7 +291,7 @@ app.post('/api/routes', async function (req, res) {
     animals?: boolean;
     approved?: boolean;
     children?: boolean;
-    wheelChair?: boolean;
+    wheelchair?: boolean;
     visuallyImpaired?: boolean;
     distance?: number;
     minutes?: number;
@@ -306,7 +306,7 @@ app.post('/api/routes', async function (req, res) {
     animals: !!req.body.animals,
     approved: !!req.body.approved,
     children: !!req.body.children,
-    wheelChair: !!req.body.wheelChair,
+    wheelchair: !!req.body.wheelChair,
     visuallyImpaired: !!req.body.visuallyImpaired,
     distance: Number(req.body.distance),
     minutes: Number(req.body.minutes),
