@@ -1,9 +1,10 @@
 import express, { Router } from 'express';
 import bodyParser from 'body-parser';
 import { initializeApp, credential, firestore } from 'firebase-admin';
+import './fire-keys.json';
 
 const app = express();
-const key = require('./fire-key.json');
+const key = require('./fire-keys.json');
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -12,7 +13,7 @@ app.use(bodyParser.raw());
 
 initializeApp({
   credential: credential.cert(key),
-  // databaseURL: "https://thegreenway-f50d0.firebaseio.com",
+  // databaseURL: 'https://thegreenway-f50d0.firebaseio.com',
 });
 
 const db = firestore();
@@ -34,6 +35,9 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
       const typesRef = (await routeRef.get(
         'types'
       )) as FirebaseFirestore.DocumentReference[];
+      const districtsRef = (await routeRef.get(
+        'districts'
+      )) as FirebaseFirestore.DocumentReference[];
       const difficultyRef = (await routeRef.get(
         'difficulty'
       )) as FirebaseFirestore.DocumentReference;
@@ -47,9 +51,8 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
               categoriesRef.map(async (categoryRef) => {
                 const category = await categoryRef.get();
                 return {
-                  [categoryRef.id]: {
-                    title: category.get('title') as String,
-                  },
+                  title: category.get('title') as String,
+                  id: category.id,
                 };
               })
             )
@@ -57,13 +60,14 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
         children: routeRef.get('children') as Boolean,
         description: routeRef.get('description') as String,
         difficulty: (await difficultyRef.get()).id,
-          // ? {
-          //     [difficultyRef.id]: {
-          //       title: (await difficultyRef.get()).get('title') as String,
-          //     },
-          //   }
-          // : {},
-        disabilities: routeRef.get('disabilities') as Boolean,
+        // ? {
+        //     [difficultyRef.id]: {
+        //       title: (await difficultyRef.get()).get('title') as String,
+        //     },
+        //   }
+        // : {},
+        visuallyImpaired: routeRef.get('visuallyImpaired') as Boolean,
+        wheelchair: routeRef.get('wheelchair') as Boolean,
         dots: dotsRef
           ? await Promise.all(
               dotsRef.map(async (dotRef) => {
@@ -105,9 +109,19 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
               typesRef.map(async (typeRef) => {
                 const type = await typeRef.get();
                 return {
-                  [typeRef.id]: {
-                    title: type.get('title') as String,
-                  },
+                  title: type.get('title') as String,
+                  id: type.id,
+                };
+              })
+            )
+          : [],
+        districts: districtsRef
+          ? await Promise.all(
+              districtsRef.map(async (districtRef) => {
+                const district = await districtRef.get();
+                return {
+                  title: district.get('title') as String,
+                  id: district.id as String,
                 };
               })
             )
@@ -148,6 +162,7 @@ app.put('/api/routes/:id', async function (req, res) {
   const routeTypesRefs = await db.collection('travel_types').get();
   const routeCategoriesRefs = await db.collection('categories').get();
   const routeDifficultyRefs = await db.collection('difficulties').get();
+  const districtsRefs = await db.collection('districts').get();
   let difficultyRef: firestore.DocumentData = firestore.DocumentReference;
   routeDifficultyRefs.docs.map((el) => {
     if (el.id === req.body.difficulty) {
@@ -164,6 +179,15 @@ app.put('/api/routes/:id', async function (req, res) {
     });
   });
 
+  let arrayOfDistrictsRef: Array<firestore.DocumentData> = [];
+  req.body.districts.map((el: any) => {
+    districtsRefs.docs.map((elToFind) => {
+      if (elToFind.id === el) {
+        arrayOfDistrictsRef.push(elToFind.ref);
+      }
+    });
+  });
+
   let arrayOfTypeRef: Array<firestore.DocumentData> = [];
   req.body.type.map((el: any) => {
     routeTypesRefs.docs.map((elToFind) => {
@@ -172,35 +196,41 @@ app.put('/api/routes/:id', async function (req, res) {
       }
     });
   });
+
   let ObjectOfDurations: any = {};
   req.body.durations.forEach((el: any) => {
     ObjectOfDurations[el.name] = parseInt(el.number);
   });
+
   const rowToUpdate: {
     id?: string;
     animals?: boolean;
     approved?: boolean;
     children?: boolean;
-    disabilities?: boolean;
+    wheelchair?: boolean;
+    visuallyImpaired?: boolean;
     distance?: number;
     minutes?: number;
     title?: string;
     description?: string;
-    type?: Array<firestore.DocumentData>;
+    types?: Array<firestore.DocumentData>;
     categories?: Array<firestore.DocumentData>;
+    districts?: Array<firestore.DocumentData>;
     durations?: Object;
     difficulty?: firestore.DocumentData;
   } = {
     animals: !!req.body.animals,
     approved: !!req.body.approved,
     children: !!req.body.children,
-    disabilities: !!req.body.disabilities,
+    wheelchair: !!req.body.wheelChair,
+    visuallyImpaired: !!req.body.visuallyImpaired,
     distance: Number(req.body.distance),
     minutes: Number(req.body.minutes),
     title: req.body.title,
     description: req.body.description,
-    type: arrayOfTypeRef,
+    types: arrayOfTypeRef,
     categories: arrayOfCategoriesRef,
+    districts: arrayOfDistrictsRef,
     durations: ObjectOfDurations,
     difficulty: difficultyRef,
   };
@@ -220,18 +250,27 @@ app.post('/api/routes', async function (req, res) {
   const routeTypesRefs = await db.collection('travel_types').get();
   const routeCategoriesRefs = await db.collection('categories').get();
   const routeDifficultyRefs = await db.collection('difficulties').get();
+  const districtsRefs = await db.collection('districts').get();
   let difficultyRef: firestore.DocumentData = firestore.DocumentReference;
   routeDifficultyRefs.docs.map((el) => {
     if (el.id === req.body.difficulty) {
       difficultyRef = el.ref;
     }
   });
-
   let arrayOfCategoriesRef: Array<firestore.DocumentData> = [];
   req.body.categories.map((el: any) => {
     routeCategoriesRefs.docs.map((elToFind) => {
       if (elToFind.id === el) {
         arrayOfCategoriesRef.push(elToFind.ref);
+      }
+    });
+  });
+
+  let arrayOfDistrictsRef: Array<firestore.DocumentData> = [];
+  req.body.districts.map((el: any) => {
+    districtsRefs.docs.map((elToFind) => {
+      if (elToFind.id === el) {
+        arrayOfDistrictsRef.push(elToFind.ref);
       }
     });
   });
@@ -252,26 +291,30 @@ app.post('/api/routes', async function (req, res) {
     animals?: boolean;
     approved?: boolean;
     children?: boolean;
-    disabilities?: boolean;
+    wheelchair?: boolean;
+    visuallyImpaired?: boolean;
     distance?: number;
     minutes?: number;
     title?: string;
     description?: string;
-    type?: Array<firestore.DocumentData>;
+    types?: Array<firestore.DocumentData>;
     categories?: Array<firestore.DocumentData>;
+    districts?: Array<firestore.DocumentData>;
     durations?: Object;
     difficulty?: firestore.DocumentData;
   } = {
     animals: !!req.body.animals,
     approved: !!req.body.approved,
     children: !!req.body.children,
-    disabilities: !!req.body.disabilities,
+    wheelchair: !!req.body.wheelChair,
+    visuallyImpaired: !!req.body.visuallyImpaired,
     distance: Number(req.body.distance),
     minutes: Number(req.body.minutes),
     title: req.body.title,
     description: req.body.description,
-    type: arrayOfTypeRef,
+    types: arrayOfTypeRef,
     categories: arrayOfCategoriesRef,
+    districts: arrayOfDistrictsRef,
     durations: ObjectOfDurations,
     difficulty: difficultyRef,
   };
@@ -296,6 +339,19 @@ app.get('/api/dot_types', async function (req, res) {
       const title = dotTypeRef.get('title');
       return {
         id: dotTypeRef.id,
+        title,
+      };
+    })
+  );
+});
+
+app.get('/api/districts', async function (req, res) {
+  const districtsRefs = await db.collection('districts').get();
+  res.json(
+    districtsRefs.docs.map((districtRef) => {
+      const title = districtRef.get('title');
+      return {
+        id: districtRef.id,
         title,
       };
     })
@@ -402,14 +458,14 @@ app.put('/api/routes/:id/dots', async function (req, res) {
 app.delete('/api/routes/:id/dot/:iddot', async function (req, res) {
   const id = req.params.id;
   const iddot = req.params.iddot;
-  const routeRef = db.collection('routes').doc(id);  
+  const routeRef = db.collection('routes').doc(id);
   try {
     const oldDots = (await routeRef.get()).get(
       'dots'
     ) as FirebaseFirestore.DocumentReference[];
 
-    const filtredDots =  oldDots.filter((dot) => dot.id !== iddot);
-    await routeRef.update({dots: filtredDots});
+    const filtredDots = oldDots.filter((dot) => dot.id !== iddot);
+    await routeRef.update({ dots: filtredDots });
     await db.collection('dots').doc(iddot).delete();
 
     res.json({
@@ -434,11 +490,15 @@ app.post('/api/routes/:id/dots', async function (req, res) {
     type: string;
   }[];
 
-  const oldDots = (await routeRef.get()).get('dots') as FirebaseFirestore.DocumentReference[];
+  const oldDots = (await routeRef.get()).get(
+    'dots'
+  ) as FirebaseFirestore.DocumentReference[];
   if (oldDots) {
-    Promise.all(oldDots.map(oldDot => {
-      return db.collection('dots').doc(oldDot.id).delete();
-    }));
+    Promise.all(
+      oldDots.map((oldDot) => {
+        return db.collection('dots').doc(oldDot.id).delete();
+      })
+    );
   }
 
   try {
