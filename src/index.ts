@@ -19,118 +19,122 @@ initializeApp({
 const db = firestore();
 
 async function getRoutes(db: FirebaseFirestore.Firestore) {
-  const routesRef = await db.collection('routes').get();
-  const routes = await Promise.all(
-    routesRef.docs.map(async (routeRef) => {
-      const categoriesRef = (await routeRef.get(
-        'categories'
-      )) as FirebaseFirestore.DocumentReference[];
-      const dotsRef = (await routeRef.get(
-        'dots'
-      )) as FirebaseFirestore.DocumentReference[];
-      const images = (await routeRef.get('images')) as String[];
-      const lines = (await routeRef.get(
-        'lines'
-      )) as FirebaseFirestore.GeoPoint[];
-      const typesRef = (await routeRef.get(
-        'types'
-      )) as FirebaseFirestore.DocumentReference[];
-      const districtsRef = (await routeRef.get(
-        'districts'
-      )) as FirebaseFirestore.DocumentReference[];
-      const difficultyRef = (await routeRef.get(
-        'difficulty'
-      )) as FirebaseFirestore.DocumentReference;
+  try {
+    const routesRef = await db.collection('routes').get();
+    const routes = await Promise.all(
+      routesRef.docs.map(async (routeRef) => {
+        const categoriesRef = (await routeRef.get(
+          'categories'
+        )) as FirebaseFirestore.DocumentReference[];
+        const dotsRef = (await routeRef.get(
+          'dots'
+        )) as FirebaseFirestore.DocumentReference[];
+        const images = (await routeRef.get('images')) as String[];
+        const lines = (await routeRef.get(
+          'lines'
+        )) as FirebaseFirestore.GeoPoint[];
+        const typesRef = (await routeRef.get(
+          'types'
+        )) as FirebaseFirestore.DocumentReference[];
+        const districtsRef = (await routeRef.get(
+          'districts'
+        )) as FirebaseFirestore.DocumentReference[];
+        const difficultyRef = (await routeRef.get(
+          'difficulty'
+        )) as FirebaseFirestore.DocumentReference;
 
-      return {
-        id: routeRef.id,
-        animals: routeRef.get('animals') as Boolean,
-        approved: routeRef.get('approved') as Boolean,
-        categories: categoriesRef
-          ? await Promise.all(
-              categoriesRef.map(async (categoryRef) => {
-                const category = await categoryRef.get();
-                return {
-                  title: category.get('title') as String,
-                  id: category.id,
-                };
-              })
-            )
-          : [],
-        children: routeRef.get('children') as Boolean,
-        description: routeRef.get('description') as String,
-        difficulty: (await difficultyRef.get()).id,
-        // ? {
-        //     [difficultyRef.id]: {
-        //       title: (await difficultyRef.get()).get('title') as String,
-        //     },
-        //   }
-        // : {},
-        visuallyImpaired: routeRef.get('visuallyImpaired') as Boolean,
-        wheelchair: routeRef.get('wheelchair') as Boolean,
-        dots: dotsRef
-          ? await Promise.all(
-              dotsRef.map(async (dotRef) => {
-                const dot = await dotRef.get();
-                const pos = dot.get('position') as FirebaseFirestore.GeoPoint;
-                const dottypeRef = (await dot.get(
-                  'type'
-                )) as FirebaseFirestore.DocumentReference;
-                let dottypeId = '';
-                let dottypeTitle = '';
-                if (dottypeRef) {
-                  const dottype = await dottypeRef.get();
-                  dottypeId = dottype.id;
-                  dottypeTitle = dottype.get('title');
-                }
-                return {
-                  id: dotRef.id,
-                  description: await dot.get('description'),
-                  position: {
-                    lat: pos.latitude,
-                    lng: pos.longitude,
-                  },
-                  type: dottypeId,
-                  title: await dot.get('title'),
-                };
-              })
-            )
-          : [],
-        images,
-        durations: routeRef.get('durations'),
-        lines: lines.map((line) => {
-          return { lat: line.latitude, lng: line.longitude };
-        }),
-        distance: routeRef.get('distance') as Number,
-        minutes: routeRef.get('minutes') as Number,
-        title: routeRef.get('title') as String,
-        types: typesRef
-          ? await Promise.all(
-              typesRef.map(async (typeRef) => {
-                const type = await typeRef.get();
-                return {
-                  title: type.get('title') as String,
-                  id: type.id,
-                };
-              })
-            )
-          : [],
-        districts: districtsRef
-          ? await Promise.all(
-              districtsRef.map(async (districtRef) => {
-                const district = await districtRef.get();
-                return {
-                  title: district.get('title') as String,
-                  id: district.id as String,
-                };
-              })
-            )
-          : [],
-      };
-    })
-  );
+        return {
+          id: routeRef.id,
+          animals: routeRef.get('animals') as Boolean,
+          approved: routeRef.get('approved') as Boolean,
+          categories: categoriesRef
+            ? await Promise.all(
+                categoriesRef.map(async (categoryRef) => {
+                  const category = await categoryRef.get();
+                  return {
+                    title: category.get('title') as String,
+                    id: category.id,
+                  };
+                })
+              )
+            : [],
+          children: routeRef.get('children') as Boolean,
+          description: routeRef.get('description') as String,
+          difficulty: (await difficultyRef.get()).id as String,
+          // ? {
+          //     [difficultyRef.id]: {
+          //       title: (await difficultyRef.get()).get('title') as String,
+          //     },
+          //   }
+          // : {},
+          visuallyImpaired: routeRef.get('visuallyImpaired') as Boolean,
+          wheelchair: routeRef.get('wheelchair') as Boolean,
+          dots: dotsRef
+            ? await Promise.all(
+                dotsRef.map(async (dotRef) => {
+                  const dot = await dotRef.get();
+                  const pos = dot.get('position') as FirebaseFirestore.GeoPoint;
+                  const dottypeRef = (await dot.get(
+                    'type'
+                  )) as FirebaseFirestore.DocumentReference;
+                  let dottypeId = '';
+                  let dottypeTitle = '';
+                  if (dottypeRef) {
+                    const dottype = await dottypeRef.get();
+                    dottypeId = dottype.id;
+                    dottypeTitle = dottype.get('title');
+                  }
+                  return {
+                    id: dotRef.id,
+                    description: await dot.get('description'),
+                    position: {
+                      lat: pos.latitude,
+                      lng: pos.longitude,
+                    },
+                    type: dottypeId,
+                    title: await dot.get('title'),
+                  };
+                })
+              )
+            : [],
+          images,
+          durations: routeRef.get('durations'),
+          lines: lines.map((line) => {
+            return { lat: line.latitude, lng: line.longitude };
+          }),
+          distance: routeRef.get('distance') as Number,
+          minutes: routeRef.get('minutes') as Number,
+          title: routeRef.get('title') as String,
+          types: typesRef
+            ? await Promise.all(
+                typesRef.map(async (typeRef) => {
+                  const type = await typeRef.get();
+                  return {
+                    title: type.get('title') as String,
+                    id: type.id,
+                  };
+                })
+              )
+            : [],
+          districts: districtsRef
+            ? await Promise.all(
+                districtsRef.map(async (districtRef) => {
+                  const district = await districtRef.get();
+                  return {
+                    title: district.get('title') as String,
+                    id: district.id as String,
+                  };
+                })
+              )
+            : [],
+        };
+      })
+    );
 
-  return routes;
+    return routes;
+  } catch (e) {
+    console.log(e);
+  }
 }
 
 app.get('/api/routes', async function (req, res) {
