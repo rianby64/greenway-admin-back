@@ -4,7 +4,7 @@ import { initializeApp, credential, firestore } from 'firebase-admin';
 import './fire-keys.json';
 
 const app = express();
-const key = require('./fire-keys.json');
+const key = require('./fire-keysFalse.json');
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -42,7 +42,6 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
         const difficultyRef = (await routeRef.get(
           'difficulty'
         )) as FirebaseFirestore.DocumentReference;
-
         return {
           id: routeRef.id,
           animals: routeRef.get('animals') as Boolean,
@@ -74,26 +73,28 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
                 dotsRef.map(async (dotRef) => {
                   const dot = await dotRef.get();
                   const pos = dot.get('position') as FirebaseFirestore.GeoPoint;
-                  const dottypeRef = (await dot.get(
-                    'type'
-                  )) as FirebaseFirestore.DocumentReference;
-                  let dottypeId = '';
-                  let dottypeTitle = '';
-                  if (dottypeRef) {
-                    const dottype = await dottypeRef.get();
-                    dottypeId = dottype.id;
-                    dottypeTitle = dottype.get('title');
+                  if (typeof pos != 'undefined') {
+                    const dottypeRef = (await dot.get(
+                      'type'
+                    )) as FirebaseFirestore.DocumentReference;
+                    let dottypeId = '';
+                    let dottypeTitle = '';
+                    if (dottypeRef) {
+                      const dottype = await dottypeRef.get();
+                      dottypeId = dottype.id;
+                      dottypeTitle = dottype.get('title');
+                    }
+                    return {
+                      id: dotRef.id,
+                      description: await dot.get('description'),
+                      position: {
+                        lat: pos.latitude,
+                        lng: pos.longitude,
+                      },
+                      type: dottypeId,
+                      title: await dot.get('title'),
+                    };
                   }
-                  return {
-                    id: dotRef.id,
-                    description: await dot.get('description'),
-                    position: {
-                      lat: pos.latitude,
-                      lng: pos.longitude,
-                    },
-                    type: dottypeId,
-                    title: await dot.get('title'),
-                  };
                 })
               )
             : [],
