@@ -4,7 +4,7 @@ import { initializeApp, credential, firestore } from 'firebase-admin';
 import './fire-keys.json';
 
 const app = express();
-const key = require('./fire-keysFalse.json');
+const key = require('./fire-keys.json');
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
