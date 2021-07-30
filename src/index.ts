@@ -460,19 +460,10 @@ app.put('/api/routes/:id/dots', async function (req, res) {
   }
 });
 
-app.delete('/api/routes/:id/dot/:iddot', async function (req, res) {
-  const id = req.params.id;
+app.delete('/api/dot/:iddot', async function (req, res) {
   const iddot = req.params.iddot;
-  const routeRef = db.collection('routes').doc(id);
   try {
-    const oldDots = (await routeRef.get()).get(
-      'dots'
-    ) as FirebaseFirestore.DocumentReference[];
-
-    const filtredDots = oldDots.filter((dot) => dot.id !== iddot);
-    await routeRef.update({ dots: filtredDots });
     await db.collection('dots').doc(iddot).delete();
-
     res.json({
       success: true,
     });
@@ -486,6 +477,7 @@ app.post('/api/routes/:id/dots', async function (req, res) {
   const routeRef = await db.collection('routes').doc(id);
   const dotTypesRef = await db.collection('dot_types').get();
   const dotsFromRequest = req.body as {
+    id: string;
     description: string;
     position: {
       lat: number;
@@ -495,23 +487,12 @@ app.post('/api/routes/:id/dots', async function (req, res) {
     type: string;
   }[];
 
-  const oldDots = (await routeRef.get()).get(
-    'dots'
-  ) as FirebaseFirestore.DocumentReference[];
-  if (oldDots) {
-    Promise.all(
-      oldDots.map((oldDot) => {
-        return db.collection('dots').doc(oldDot.id).delete();
-      })
-    );
-  }
-
   try {
     const dotRefs = dotsFromRequest.map((dotFromRequest) => {
       const dotTypeRef = dotTypesRef.docs.find(
         (dotTypeRef) => dotTypeRef.id === dotFromRequest.type
       );
-      if (dotTypeRef) {
+      if (dotFromRequest.id === '') {
         const createdDotRef = db.collection('dots').doc();
         createdDotRef.create({
           title: dotFromRequest.title,
@@ -523,18 +504,24 @@ app.post('/api/routes/:id/dots', async function (req, res) {
           type: dotTypeRef?.ref,
         });
         return createdDotRef;
+      } else {
+        const createdDotRef = db.collection('dots').doc(dotFromRequest.id);
+        const obj = {
+          title: dotFromRequest.title,
+          description: dotFromRequest.description,
+          position: new firestore.GeoPoint(
+            dotFromRequest.position.lat,
+            dotFromRequest.position.lng
+          ),
+          type: dotTypeRef?.ref,
+        };
+        createdDotRef.set(obj);
+        return createdDotRef;
       }
-      throw new Error(
-        `dot from request ${JSON.stringify(
-          dotFromRequest
-        )} has an incorrect type`
-      );
     });
-
     await routeRef.update({
       dots: dotRefs,
     });
-
     res.json({
       success: true,
     });
