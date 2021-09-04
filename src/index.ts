@@ -18,6 +18,10 @@ initializeApp({
 
 const db = firestore();
 
+const clearImageArray = (images: Array<any>) => {
+  return images.filter((el) => el != '')
+}
+
 async function getRoutes(db: FirebaseFirestore.Firestore) {
   try {
     const routesRef = await db.collection('routes').get();
@@ -48,58 +52,53 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
           approved: routeRef.get('approved') as Boolean,
           categories: categoriesRef
             ? await Promise.all(
-                categoriesRef.map(async (categoryRef) => {
-                  const category = await categoryRef.get();
-                  return {
-                    title: category.get('title') as String,
-                    id: category.id,
-                  };
-                })
-              )
+              categoriesRef.map(async (categoryRef) => {
+                const category = await categoryRef.get();
+                return {
+                  title: category.get('title') as String,
+                  id: category.id,
+                };
+              })
+            )
             : [],
           children: routeRef.get('children') as Boolean,
           description: routeRef.get('description') as String,
           difficulty: (await difficultyRef.get()).id as String,
-          // ? {
-          //     [difficultyRef.id]: {
-          //       title: (await difficultyRef.get()).get('title') as String,
-          //     },
-          //   }
-          // : {},
           visuallyImpaired: routeRef.get('visuallyImpaired') as Boolean,
           wheelchair: routeRef.get('wheelchair') as Boolean,
           dots: dotsRef
             ? await Promise.all(
-                dotsRef.map(async (dotRef) => {
-                  const dot = await dotRef.get();
-                  const pos = dot.get('position') as FirebaseFirestore.GeoPoint;
-                  if (typeof pos != 'undefined') {
-                    const dottypeRef = (await dot.get(
-                      'type'
-                    )) as FirebaseFirestore.DocumentReference;
-                    let dottypeId = '';
-                    let dottypeTitle = '';
-                    if (dottypeRef) {
-                      const dottype = await dottypeRef.get();
-                      dottypeId = dottype.id;
-                      dottypeTitle = dottype.get('title');
-                    }
-                    return {
-                      id: dotRef.id,
-                      description: await dot.get('description'),
-                      position: {
-                        lat: pos.latitude,
-                        lng: pos.longitude,
-                      },
-                      type: dottypeId,
-                      title: await dot.get('title'),
-                    };
+              dotsRef.map(async (dotRef) => {
+                const dot = await dotRef.get();
+                const pos = dot.get('position') as FirebaseFirestore.GeoPoint;
+                if (typeof pos != 'undefined') {
+                  const dottypeRef = (await dot.get(
+                    'type'
+                  )) as FirebaseFirestore.DocumentReference;
+                  let dottypeId = '';
+                  let dottypeTitle = '';
+                  if (dottypeRef) {
+                    const dottype = await dottypeRef.get();
+                    dottypeId = dottype.id;
+                    dottypeTitle = dottype.get('title');
                   }
-                })
-              )
+                  return {
+                    id: dotRef.id,
+                    description: await dot.get('description'),
+                    position: {
+                      lat: pos.latitude,
+                      lng: pos.longitude,
+                    },
+                    type: dottypeId,
+                    title: await dot.get('title'),
+                  };
+                }
+              })
+            )
             : [],
           images,
           durations: routeRef.get('durations'),
+          creator: routeRef.get('creator'),
           lines: lines.map((line) => {
             return { lat: line.latitude, lng: line.longitude };
           }),
@@ -108,25 +107,25 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
           title: routeRef.get('title') as String,
           types: typesRef
             ? await Promise.all(
-                typesRef.map(async (typeRef) => {
-                  const type = await typeRef.get();
-                  return {
-                    title: type.get('title') as String,
-                    id: type.id,
-                  };
-                })
-              )
+              typesRef.map(async (typeRef) => {
+                const type = await typeRef.get();
+                return {
+                  title: type.get('title') as String,
+                  id: type.id,
+                };
+              })
+            )
             : [],
           districts: districtsRef
             ? await Promise.all(
-                districtsRef.map(async (districtRef) => {
-                  const district = await districtRef.get();
-                  return {
-                    title: district.get('title') as String,
-                    id: district.id as String,
-                  };
-                })
-              )
+              districtsRef.map(async (districtRef) => {
+                const district = await districtRef.get();
+                return {
+                  title: district.get('title') as String,
+                  id: district.id as String,
+                };
+              })
+            )
             : [],
         };
       })
@@ -163,6 +162,7 @@ app.put('/api/routes/:id/lines', async function (req, res) {
 });
 
 app.put('/api/routes/:id', async function (req, res) {
+  console.log(req.body);
   const id = req.params.id;
   const routeTypesRefs = await db.collection('travel_types').get();
   const routeCategoriesRefs = await db.collection('categories').get();
@@ -223,6 +223,8 @@ app.put('/api/routes/:id', async function (req, res) {
     districts?: Array<firestore.DocumentData>;
     durations?: Object;
     difficulty?: firestore.DocumentData;
+    images?: Array<any>,
+    creator?: any
   } = {
     animals: !!req.body.animals,
     approved: !!req.body.approved,
@@ -238,6 +240,8 @@ app.put('/api/routes/:id', async function (req, res) {
     districts: arrayOfDistrictsRef,
     durations: ObjectOfDurations,
     difficulty: difficultyRef,
+    images: clearImageArray(req.body.images),
+    creator: req.body.creator
   };
   delete rowToUpdate.id;
 
@@ -252,6 +256,7 @@ app.put('/api/routes/:id', async function (req, res) {
 });
 
 app.post('/api/routes', async function (req, res) {
+  console.log(req.body);
   const routeTypesRefs = await db.collection('travel_types').get();
   const routeCategoriesRefs = await db.collection('categories').get();
   const routeDifficultyRefs = await db.collection('difficulties').get();
@@ -307,6 +312,8 @@ app.post('/api/routes', async function (req, res) {
     districts?: Array<firestore.DocumentData>;
     durations?: Object;
     difficulty?: firestore.DocumentData;
+    images?: Array<any>,
+    creator?: any
   } = {
     animals: !!req.body.animals,
     approved: !!req.body.approved,
@@ -322,6 +329,8 @@ app.post('/api/routes', async function (req, res) {
     districts: arrayOfDistrictsRef,
     durations: ObjectOfDurations,
     difficulty: difficultyRef,
+    images: clearImageArray(req.body.images),
+    creator: req.body.creator
   };
   try {
     const id = db.collection('routes').doc().id;
