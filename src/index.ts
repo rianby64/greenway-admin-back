@@ -7,8 +7,8 @@ const app = express();
 const key = require('./fire-keys.json');
 const PORT = process.env.PORT || 3000;
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 }));
+app.use(bodyParser.json({ limit: "50mb" }))
 app.use(bodyParser.raw());
 
 initializeApp({
@@ -20,6 +20,17 @@ const db = firestore();
 
 const clearImageArray = (images: Array<any>) => {
   return images.filter((el) => el != '')
+}
+
+const creatorManger = (creator: any) => {
+  const creatorManaged: any = {};
+  Object.keys(creator).map((el) => {
+    if (creator[el] !== '') {
+      creatorManaged[el] = creator[el]
+    }
+  })
+  console.log(creatorManaged);
+  return creatorManaged;
 }
 
 async function getRoutes(db: FirebaseFirestore.Firestore) {
@@ -241,7 +252,7 @@ app.put('/api/routes/:id', async function (req, res) {
     durations: ObjectOfDurations,
     difficulty: difficultyRef,
     images: clearImageArray(req.body.images),
-    creator: req.body.creator
+    creator: creatorManger(req.body.creator)
   };
   delete rowToUpdate.id;
 
