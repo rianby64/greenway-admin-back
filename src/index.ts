@@ -102,6 +102,7 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
                     },
                     type: dottypeId,
                     title: await dot.get('title'),
+                    images: await dot.get("images")
                   };
                 }
               })
@@ -428,7 +429,7 @@ app.put('/api/routes/:id/dots', async function (req, res) {
   const dotRefs = (await routeRef.get(
     'dots'
   )) as FirebaseFirestore.DocumentReference[];
-
+  
   const dotsFromRequest = req.body as {
     [id: string]: {
       id: string;
@@ -439,6 +440,7 @@ app.put('/api/routes/:id/dots', async function (req, res) {
       };
       title: string;
       type: string;
+      images: string[]
     };
   };
 
@@ -459,6 +461,7 @@ app.put('/api/routes/:id/dots', async function (req, res) {
               ),
               description: dot.description,
               type: dotTypeRef?.ref,
+              images: clearImageArray(dot.images)
             });
           }
           return dotRef.update({
@@ -467,6 +470,7 @@ app.put('/api/routes/:id/dots', async function (req, res) {
               dot.position.lng
             ),
             description: dot.description,
+            images: clearImageArray(dot.images)
           });
         }
       })
@@ -497,6 +501,7 @@ app.post('/api/routes/:id/dots', async function (req, res) {
   const routeRef = await db.collection('routes').doc(id);
   const dotTypesRef = await db.collection('dot_types').get();
   const dotsFromRequest = req.body as {
+    images: string[];
     id: string;
     description: string;
     position: {
@@ -522,6 +527,7 @@ app.post('/api/routes/:id/dots', async function (req, res) {
             dotFromRequest.position.lng
           ),
           type: dotTypeRef?.ref,
+          images: clearImageArray(dotFromRequest.images)
         });
         return createdDotRef;
       } else {
@@ -534,6 +540,7 @@ app.post('/api/routes/:id/dots', async function (req, res) {
             dotFromRequest.position.lng
           ),
           type: dotTypeRef?.ref,
+          images: clearImageArray(dotFromRequest.images)
         };
         createdDotRef.set(obj);
         return createdDotRef;

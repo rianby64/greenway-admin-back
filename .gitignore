@@ -1,5 +1,6 @@
 /node_modules/
 /build/
 firebase-key.json
+fire-keys.json
 fire-key.json
 tsconfig.tsbuildinfo
