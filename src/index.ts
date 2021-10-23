@@ -501,7 +501,6 @@ app.post('/api/routes/:id/dots', async function (req, res) {
   const routeRef = await db.collection('routes').doc(id);
   const dotTypesRef = await db.collection('dot_types').get();
   const dotsFromRequest = req.body as {
-    images: string[];
     id: string;
     description: string;
     position: {
@@ -510,6 +509,7 @@ app.post('/api/routes/:id/dots', async function (req, res) {
     };
     title: string;
     type: string;
+    images: string[];
   }[];
 
   try {
@@ -527,7 +527,7 @@ app.post('/api/routes/:id/dots', async function (req, res) {
             dotFromRequest.position.lng
           ),
           type: dotTypeRef?.ref,
-          images: clearImageArray(dotFromRequest.images)
+          images: dotFromRequest.images? clearImageArray(dotFromRequest.images): []
         });
         return createdDotRef;
       } else {
@@ -540,7 +540,7 @@ app.post('/api/routes/:id/dots', async function (req, res) {
             dotFromRequest.position.lng
           ),
           type: dotTypeRef?.ref,
-          images: clearImageArray(dotFromRequest.images)
+          images: dotFromRequest.images? clearImageArray(dotFromRequest.images): []
         };
         createdDotRef.set(obj);
         return createdDotRef;
