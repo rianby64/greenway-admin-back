@@ -132,9 +132,21 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
             ? await Promise.all(
               districtsRef.map(async (districtRef) => {
                 const district = await districtRef.get();
+                const districtAreaRef = await district.get('area') as FirebaseFirestore.DocumentReference;
+                let areaId: string = ""
+                let areaName: string = ""
+                if (districtAreaRef) {
+                  const area = await districtAreaRef.get()
+                  areaId = area.id
+                  areaName = await area.get('title');
+                }
                 return {
                   title: district.get('title') as String,
                   id: district.id as String,
+                  area: {
+                    areaId,
+                    areaName
+                  }
                 };
               })
             )
@@ -429,7 +441,7 @@ app.put('/api/routes/:id/dots', async function (req, res) {
   const dotRefs = (await routeRef.get(
     'dots'
   )) as FirebaseFirestore.DocumentReference[];
-  
+
   const dotsFromRequest = req.body as {
     [id: string]: {
       id: string;
@@ -527,7 +539,7 @@ app.post('/api/routes/:id/dots', async function (req, res) {
             dotFromRequest.position.lng
           ),
           type: dotTypeRef?.ref,
-          images: dotFromRequest.images? clearImageArray(dotFromRequest.images): []
+          images: dotFromRequest.images ? clearImageArray(dotFromRequest.images) : []
         });
         return createdDotRef;
       } else {
@@ -540,7 +552,7 @@ app.post('/api/routes/:id/dots', async function (req, res) {
             dotFromRequest.position.lng
           ),
           type: dotTypeRef?.ref,
-          images: dotFromRequest.images? clearImageArray(dotFromRequest.images): []
+          images: dotFromRequest.images ? clearImageArray(dotFromRequest.images) : []
         };
         createdDotRef.set(obj);
         return createdDotRef;
@@ -553,6 +565,7 @@ app.post('/api/routes/:id/dots', async function (req, res) {
       success: true,
     });
   } catch (e) {
+    console.log(e);
     res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
   }
 });
