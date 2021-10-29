@@ -385,14 +385,32 @@ app.get('/api/dot_types', async function (req, res) {
 
 app.get('/api/districts', async function (req, res) {
   const districtsRefs = await db.collection('districts').get();
+  const districtArray = await Promise.all(districtsRefs.docs.map(async (districtRef) => {
+    const title = districtRef.get('title');
+    const areaRef = districtRef.get('area') as FirebaseFirestore.DocumentReference
+    const id = areaRef.id
+    return {
+      id: districtRef.id,
+      title: title,
+      areaId: id
+    }
+  })
+  )
+  console.log(districtArray);
+  
+  const areasRefs = await db.collection('areas').get();
+  const responseAreasArray = areasRefs.docs.map((areaRef) => {
+    const title = areaRef.get('title');
+    return {
+      id: areaRef.id,
+      title,
+      district: districtArray.filter((el) => el.areaId === areaRef.id)
+    }
+  })
   res.json(
-    districtsRefs.docs.map((districtRef) => {
-      const title = districtRef.get('title');
-      return {
-        id: districtRef.id,
-        title,
-      };
-    })
+    await Promise.all(
+      responseAreasArray
+    )
   );
 });
 
