@@ -395,9 +395,7 @@ app.get('/api/districts', async function (req, res) {
       areaId: id
     }
   })
-  )
-  console.log(districtArray);
-  
+  )  
   const areasRefs = await db.collection('areas').get();
   const responseAreasArray = areasRefs.docs.map((areaRef) => {
     const title = areaRef.get('title');
@@ -408,9 +406,7 @@ app.get('/api/districts', async function (req, res) {
     }
   })
   res.json(
-    await Promise.all(
       responseAreasArray
-    )
   );
 });
 
