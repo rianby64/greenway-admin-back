@@ -132,9 +132,21 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
             ? await Promise.all(
               districtsRef.map(async (districtRef) => {
                 const district = await districtRef.get();
+                const districtAreaRef = await district.get('area') as FirebaseFirestore.DocumentReference;
+                let areaId: string = ""
+                let areaName: string = ""
+                if (districtAreaRef) {
+                  const area = await districtAreaRef.get()
+                  areaId = area.id
+                  areaName = await area.get('title');
+                }
                 return {
                   title: district.get('title') as String,
                   id: district.id as String,
+                  area: {
+                    areaId,
+                    areaName
+                  }
                 };
               })
             )
@@ -373,14 +385,28 @@ app.get('/api/dot_types', async function (req, res) {
 
 app.get('/api/districts', async function (req, res) {
   const districtsRefs = await db.collection('districts').get();
+  const districtArray = await Promise.all(districtsRefs.docs.map(async (districtRef) => {
+    const title = districtRef.get('title');
+    const areaRef = districtRef.get('area') as FirebaseFirestore.DocumentReference
+    const id = areaRef.id
+    return {
+      id: districtRef.id,
+      title: title,
+      areaId: id
+    }
+  })
+  )  
+  const areasRefs = await db.collection('areas').get();
+  const responseAreasArray = areasRefs.docs.map((areaRef) => {
+    const title = areaRef.get('title');
+    return {
+      id: areaRef.id,
+      title,
+      district: districtArray.filter((el) => el.areaId === areaRef.id)
+    }
+  })
   res.json(
-    districtsRefs.docs.map((districtRef) => {
-      const title = districtRef.get('title');
-      return {
-        id: districtRef.id,
-        title,
-      };
-    })
+      responseAreasArray
   );
 });
 
@@ -429,7 +455,7 @@ app.put('/api/routes/:id/dots', async function (req, res) {
   const dotRefs = (await routeRef.get(
     'dots'
   )) as FirebaseFirestore.DocumentReference[];
-  
+
   const dotsFromRequest = req.body as {
     [id: string]: {
       id: string;
@@ -527,7 +553,7 @@ app.post('/api/routes/:id/dots', async function (req, res) {
             dotFromRequest.position.lng
           ),
           type: dotTypeRef?.ref,
-          images: dotFromRequest.images? clearImageArray(dotFromRequest.images): []
+          images: dotFromRequest.images ? clearImageArray(dotFromRequest.images) : []
         });
         return createdDotRef;
       } else {
@@ -540,7 +566,7 @@ app.post('/api/routes/:id/dots', async function (req, res) {
             dotFromRequest.position.lng
           ),
           type: dotTypeRef?.ref,
-          images: dotFromRequest.images? clearImageArray(dotFromRequest.images): []
+          images: dotFromRequest.images ? clearImageArray(dotFromRequest.images) : []
         };
         createdDotRef.set(obj);
         return createdDotRef;
@@ -553,6 +579,7 @@ app.post('/api/routes/:id/dots', async function (req, res) {
       success: true,
     });
   } catch (e) {
+    console.log(e);
     res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
   }
 });
