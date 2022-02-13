@@ -866,4 +866,66 @@ app.post('/api/routes/:id/dots', async function (req, res) {
   }
 });
 
+app.post('/api/routes/users/:id/dots', async function (req, res) {
+  const id = req.params.id;
+  const routeRef = await db.collection('users_routes').doc(id);
+  const dotTypesRef = await db.collection('dot_types').get();
+  const dotsFromRequest = req.body as {
+    id: string;
+    description: string;
+    position: {
+      lat: number;
+      lng: number;
+    };
+    title: string;
+    type: string;
+    images: string[];
+  }[];
+
+  try {
+    const dotRefs = dotsFromRequest.map((dotFromRequest) => {
+      const dotTypeRef = dotTypesRef.docs.find(
+        (dotTypeRef) => dotTypeRef.id === dotFromRequest.type
+      );
+      if (dotFromRequest.id === '') {
+        const createdDotRef = db.collection('dots').doc();
+        createdDotRef.create({
+          title: dotFromRequest.title,
+          description: dotFromRequest.description,
+          position: new firestore.GeoPoint(
+            dotFromRequest.position.lat,
+            dotFromRequest.position.lng
+          ),
+          type: dotTypeRef?.ref,
+          images: dotFromRequest.images ? clearImageArray(dotFromRequest.images) : []
+        });
+        return createdDotRef;
+      } else {
+        const createdDotRef = db.collection('dots').doc(dotFromRequest.id);
+        const obj = {
+          title: dotFromRequest.title,
+          description: dotFromRequest.description,
+          position: new firestore.GeoPoint(
+            dotFromRequest.position.lat,
+            dotFromRequest.position.lng
+          ),
+          type: dotTypeRef?.ref,
+          images: dotFromRequest.images ? clearImageArray(dotFromRequest.images) : []
+        };
+        createdDotRef.set(obj);
+        return createdDotRef;
+      }
+    });
+    await routeRef.update({
+      dots: dotRefs,
+    });
+    res.json({
+      success: true,
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
+  }
+});
+
 app.listen(PORT);
