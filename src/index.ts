@@ -33,9 +33,9 @@ const creatorManger = (creator: any) => {
   return creatorManaged;
 }
 
-async function getRoutes(db: FirebaseFirestore.Firestore) {
+async function getRoutes(db: FirebaseFirestore.Firestore, isUsers = false) {
   try {
-    const routesRef = await db.collection('routes').get();
+    const routesRef = await db.collection(`${isUsers ? "users_routes" : "routes"}`).get();
     const routes = await Promise.all(
       routesRef.docs.map(async (routeRef) => {
         const categoriesRef = (await routeRef.get(
@@ -170,6 +170,15 @@ app.get('/api/routes', async function (req, res) {
   }
 });
 
+app.get('/api/routes/users', async function (req, res) {
+  try {
+    const routes = await getRoutes(db, true);
+    res.json(routes);
+  } catch (e) {
+    res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
+  }
+});
+
 app.put('/api/routes/:id/lines', async function (req, res) {
   const id = req.params.id;
   const lines = (req.body as { lat: number; lng: number }[]).map((line) => {
@@ -177,6 +186,21 @@ app.put('/api/routes/:id/lines', async function (req, res) {
   });
   try {
     await db.collection('routes').doc(id).update({ lines: lines });
+    res.json({
+      success: true,
+    });
+  } catch (e) {
+    res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
+  }
+});
+
+app.put('/api/routes/users/:id/lines', async function (req, res) {
+  const id = req.params.id;
+  const lines = (req.body as { lat: number; lng: number }[]).map((line) => {
+    return new firestore.GeoPoint(line.lat, line.lng);
+  });
+  try {
+    await db.collection('users_routes').doc(id).update({ lines: lines });
     res.json({
       success: true,
     });
@@ -279,6 +303,100 @@ app.put('/api/routes/:id', async function (req, res) {
   }
 });
 
+app.put('/api/routes/users/:id', async function (req, res) {
+  console.log(req.body);
+  const id = req.params.id;
+  const routeTypesRefs = await db.collection('travel_types').get();
+  const routeCategoriesRefs = await db.collection('categories').get();
+  const routeDifficultyRefs = await db.collection('difficulties').get();
+  const districtsRefs = await db.collection('districts').get();
+  let difficultyRef: firestore.DocumentData = firestore.DocumentReference;
+  routeDifficultyRefs.docs.map((el) => {
+    if (el.id === req.body.difficulty) {
+      difficultyRef = el.ref;
+    }
+  });
+
+  let arrayOfCategoriesRef: Array<firestore.DocumentData> = [];
+  req.body.categories.map((el: any) => {
+    routeCategoriesRefs.docs.map((elToFind) => {
+      if (elToFind.id === el) {
+        arrayOfCategoriesRef.push(elToFind.ref);
+      }
+    });
+  });
+
+  let arrayOfDistrictsRef: Array<firestore.DocumentData> = [];
+  req.body.districts.map((el: any) => {
+    districtsRefs.docs.map((elToFind) => {
+      if (elToFind.id === el) {
+        arrayOfDistrictsRef.push(elToFind.ref);
+      }
+    });
+  });
+
+  let arrayOfTypeRef: Array<firestore.DocumentData> = [];
+  req.body.type.map((el: any) => {
+    routeTypesRefs.docs.map((elToFind) => {
+      if (elToFind.id === el) {
+        arrayOfTypeRef.push(elToFind.ref);
+      }
+    });
+  });
+
+  let ObjectOfDurations: any = {};
+  req.body.durations.forEach((el: any) => {
+    ObjectOfDurations[el.name] = parseInt(el.number);
+  });
+
+  const rowToUpdate: {
+    id?: string;
+    animals?: boolean;
+    approved?: boolean;
+    children?: boolean;
+    wheelchair?: boolean;
+    visuallyImpaired?: boolean;
+    distance?: number;
+    minutes?: number;
+    title?: string;
+    description?: string;
+    types?: Array<firestore.DocumentData>;
+    categories?: Array<firestore.DocumentData>;
+    districts?: Array<firestore.DocumentData>;
+    durations?: Object;
+    difficulty?: firestore.DocumentData;
+    images?: Array<any>,
+    creator?: any
+  } = {
+    animals: !!req.body.animals,
+    approved: !!req.body.approved,
+    children: !!req.body.children,
+    wheelchair: !!req.body.wheelChair,
+    visuallyImpaired: !!req.body.visuallyImpaired,
+    distance: Number(req.body.distance),
+    minutes: Number(req.body.minutes),
+    title: req.body.title,
+    description: req.body.description,
+    types: arrayOfTypeRef,
+    categories: arrayOfCategoriesRef,
+    districts: arrayOfDistrictsRef,
+    durations: ObjectOfDurations,
+    difficulty: difficultyRef,
+    images: clearImageArray(req.body.images),
+    creator: creatorManger(req.body.creator)
+  };
+  delete rowToUpdate.id;
+
+  try {
+    await db.collection('users_routes').doc(id).update(rowToUpdate);
+    res.json({
+      success: true,
+    });
+  } catch (e) {
+    res.status(500).json(e);
+  }
+});
+
 app.post('/api/routes', async function (req, res) {
   console.log(req.body);
   const routeTypesRefs = await db.collection('travel_types').get();
@@ -359,6 +477,97 @@ app.post('/api/routes', async function (req, res) {
   try {
     const id = db.collection('routes').doc().id;
     await db.collection('routes').doc(id).create(rowToSave);
+    res.json({
+      success: true,
+      id: id,
+    });
+  } catch (e) {
+    res.status(500).json({
+      message: 'Backend error',
+    });
+  }
+});
+
+app.post('/api/routes/users', async function (req, res) {
+  console.log(req.body);
+  const routeTypesRefs = await db.collection('travel_types').get();
+  const routeCategoriesRefs = await db.collection('categories').get();
+  const routeDifficultyRefs = await db.collection('difficulties').get();
+  const districtsRefs = await db.collection('districts').get();
+  let difficultyRef: firestore.DocumentData = firestore.DocumentReference;
+  routeDifficultyRefs.docs.map((el) => {
+    if (el.id === req.body.difficulty) {
+      difficultyRef = el.ref;
+    }
+  });
+  let arrayOfCategoriesRef: Array<firestore.DocumentData> = [];
+  req.body.categories.map((el: any) => {
+    routeCategoriesRefs.docs.map((elToFind) => {
+      if (elToFind.id === el) {
+        arrayOfCategoriesRef.push(elToFind.ref);
+      }
+    });
+  });
+
+  let arrayOfDistrictsRef: Array<firestore.DocumentData> = [];
+  req.body.districts.map((el: any) => {
+    districtsRefs.docs.map((elToFind) => {
+      if (elToFind.id === el) {
+        arrayOfDistrictsRef.push(elToFind.ref);
+      }
+    });
+  });
+
+  let arrayOfTypeRef: Array<firestore.DocumentData> = [];
+  req.body.type.map((el: any) => {
+    routeTypesRefs.docs.map((elToFind) => {
+      if (elToFind.id === el) {
+        arrayOfTypeRef.push(elToFind.ref);
+      }
+    });
+  });
+  let ObjectOfDurations: any = {};
+  req.body.durations.forEach((el: any) => {
+    ObjectOfDurations[el.name] = parseInt(el.number);
+  });
+  const rowToSave: {
+    animals?: boolean;
+    approved?: boolean;
+    children?: boolean;
+    wheelchair?: boolean;
+    visuallyImpaired?: boolean;
+    distance?: number;
+    minutes?: number;
+    title?: string;
+    description?: string;
+    types?: Array<firestore.DocumentData>;
+    categories?: Array<firestore.DocumentData>;
+    districts?: Array<firestore.DocumentData>;
+    durations?: Object;
+    difficulty?: firestore.DocumentData;
+    images?: Array<any>,
+    creator?: any
+  } = {
+    animals: !!req.body.animals,
+    approved: !!req.body.approved,
+    children: !!req.body.children,
+    wheelchair: !!req.body.wheelChair,
+    visuallyImpaired: !!req.body.visuallyImpaired,
+    distance: Number(req.body.distance),
+    minutes: Number(req.body.minutes),
+    title: req.body.title,
+    description: req.body.description,
+    types: arrayOfTypeRef,
+    categories: arrayOfCategoriesRef,
+    districts: arrayOfDistrictsRef,
+    durations: ObjectOfDurations,
+    difficulty: difficultyRef,
+    images: clearImageArray(req.body.images),
+    creator: req.body.creator
+  };
+  try {
+    const id = db.collection('users_routes').doc().id;
+    await db.collection('users_routes').doc(id).create(rowToSave);
     res.json({
       success: true,
       id: id,
@@ -510,10 +719,83 @@ app.put('/api/routes/:id/dots', async function (req, res) {
   }
 });
 
+app.put('/api/routes/users/:id/dots', async function (req, res) {
+  const id = req.params.id;
+  const routeRef = await db.collection('users_routes').doc(id).get();
+  const dotRefs = (await routeRef.get(
+    'dots'
+  )) as FirebaseFirestore.DocumentReference[];
+
+  const dotsFromRequest = req.body as {
+    [id: string]: {
+      id: string;
+      description: string;
+      position: {
+        lat: number;
+        lng: number;
+      };
+      title: string;
+      type: string;
+      images: string[]
+    };
+  };
+
+  try {
+    const dotTypesRef = await db.collection('dot_types').get();
+    await Promise.all(
+      dotRefs.map((dotRef) => {
+        const dot = dotsFromRequest[dotRef.id];
+        if (dot) {
+          const dotTypeRef = dotTypesRef.docs.find(
+            (dotTypeRef) => dotTypeRef.id === dot.type
+          );
+          if (dotTypeRef) {
+            return dotRef.update({
+              position: new firestore.GeoPoint(
+                dot.position.lat,
+                dot.position.lng
+              ),
+              description: dot.description,
+              type: dotTypeRef?.ref,
+              images: clearImageArray(dot.images)
+            });
+          }
+          return dotRef.update({
+            position: new firestore.GeoPoint(
+              dot.position.lat,
+              dot.position.lng
+            ),
+            description: dot.description,
+            images: clearImageArray(dot.images)
+          });
+        }
+      })
+    );
+
+    res.json({
+      success: true,
+    });
+  } catch (e) {
+    res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
+  }
+});
+
 app.delete('/api/dot/:iddot', async function (req, res) {
   const iddot = req.params.iddot;
   try {
     await db.collection('dots').doc(iddot).delete();
+    res.json({
+      success: true,
+    });
+  } catch (e) {
+    res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
+  }
+});
+
+app.delete('/api/user/route/:id', async function (req, res) {
+  const id = req.params.id;
+  try {
+    await db.collection('users_routes').doc(id).delete();
     res.json({
       success: true,
     });
