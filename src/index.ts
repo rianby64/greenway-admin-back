@@ -805,6 +805,7 @@ app.delete('/api/user/route/:id', async function (req, res) {
 });
 
 app.post('/api/routes/:id/dots', async function (req, res) {
+  console.log(req.body);
   const id = req.params.id;
   const routeRef = await db.collection('routes').doc(id);
   const dotTypesRef = await db.collection('dot_types').get();
@@ -867,6 +868,7 @@ app.post('/api/routes/:id/dots', async function (req, res) {
 });
 
 app.post('/api/routes/users/:id/dots', async function (req, res) {
+  console.log(req.body);
   const id = req.params.id;
   const routeRef = await db.collection('users_routes').doc(id);
   const dotTypesRef = await db.collection('dot_types').get();
