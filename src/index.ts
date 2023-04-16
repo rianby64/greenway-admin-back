@@ -2,6 +2,7 @@ import express, { Router } from 'express';
 import bodyParser from 'body-parser';
 import { initializeApp, credential, firestore } from 'firebase-admin';
 import './fire-keys.json';
+const {clearImageArray, creatorManger} = require("./utils/utils");
 
 const app = express();
 const key = require('./fire-keys.json');
@@ -18,20 +19,7 @@ initializeApp({
 
 const db = firestore();
 
-const clearImageArray = (images: Array<any>) => {
-  return images.filter((el) => el != '')
-}
 
-const creatorManger = (creator: any) => {
-  const creatorManaged: any = {};
-  Object.keys(creator).map((el) => {
-    if (creator[el] !== '') {
-      creatorManaged[el] = creator[el]
-    }
-  })
-  console.log(creatorManaged);
-  return creatorManaged;
-}
 
 async function getRoutes(db: FirebaseFirestore.Firestore, isUsers = false) {
   try {
@@ -208,7 +196,7 @@ app.put('/api/routes/users/:id/lines', async function (req, res) {
     res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
   }
 });
-
+//
 app.put('/api/routes/:id', async function (req, res) {
   console.log(req.body);
   const id = req.params.id;
