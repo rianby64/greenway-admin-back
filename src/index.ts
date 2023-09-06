@@ -1,6 +1,7 @@
 import express, { Router } from 'express';
 import bodyParser from 'body-parser';
 import { initializeApp, credential, firestore } from 'firebase-admin';
+import cors from 'cors'
 import './fire-keys.json';
 
 const app = express();
@@ -10,6 +11,7 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 }));
 app.use(bodyParser.json({ limit: "50mb" }))
 app.use(bodyParser.raw());
+app.use(cors());
 
 initializeApp({
   credential: credential.cert(key),
@@ -930,4 +932,7 @@ app.post('/api/routes/users/:id/dots', async function (req, res) {
   }
 });
 
-app.listen(PORT);
+app.listen(PORT, () => {
+  console.log("Launched", PORT)
+});
+
