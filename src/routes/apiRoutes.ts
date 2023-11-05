@@ -1,17 +1,18 @@
-const {Router} = require("express");
+export {};
+const { Router } = require("express");
 const {
-    getAllRoutesController,
-    getAllRoutesUsersController,
-    updateLineByRouteIdController,
-    updateLinesByUserIdController,
-    updateRouteByIdController,
-    updateRouteByUserIdController,
-    createRouteController,
-    createUserRouteController,
-    updateDotsByRouteIdController,
-    updateDotsByUserIdController,
-    createDotController,
-    createDotByUserIdController
+  getAllRoutesController,
+  getAllRoutesUsersController,
+  updateLineByRouteIdController,
+  updateLinesByUserIdController,
+  updateRouteByIdController,
+  updateRouteByUserIdController,
+  createRouteController,
+  createUserRouteController,
+  updateDotsByRouteIdController,
+  updateDotsByUserIdController,
+  createDotController,
+  createDotByUserIdController,
 } = require("../controllers/routesController");
 
 const routesRouter = Router();
@@ -32,4 +33,3 @@ routesRouter.post(`${prefix}/:id/dots`, createDotController);
 routesRouter.post(`${prefix}/users/:id/dots`, createDotByUserIdController);
 
 module.exports = routesRouter;
-
