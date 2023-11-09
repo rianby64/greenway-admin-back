@@ -43,7 +43,7 @@ async function getDistricts(req: any, res: any) {
     );
 };
 
-async function getRouteCatrgiries(req: any, res: any) {
+async function getRouteCategories(req: any, res: any) {
     const routeTypeRefs = await db.collection('categories').get();
     res.json(
         routeTypeRefs.docs.map((routeTypeRef) => {
@@ -107,9 +107,9 @@ async function deleteUserRouteById(req: any, res: any) {
 };
 
 module.exports = {
-    getDotTypesController,
+		getDotTypesController,
     getDistricts,
-    getRouteCatrgiries,
+    getRouteCategories,
     getRouteDifficulties,
     getRouteTypes,
     deleteDotById,
