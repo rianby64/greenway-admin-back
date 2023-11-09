@@ -12,7 +12,7 @@ initializeApp({
 const routes = require("./routes");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3009;
 
 app.use(
   bodyParser.urlencoded({
@@ -29,8 +29,10 @@ app.use(routes);
 (async () => {
   try {
     app.listen(PORT);
-    console.log("server started");
+    console.log(`server started \non port ${PORT}`);
   } catch (err) {
     console.log("server error");
   }
 })();
+
+app.listen(PORT)
