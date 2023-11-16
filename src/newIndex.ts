@@ -12,7 +12,7 @@ initializeApp({
 const routes = require("./routes");
 
 const app = express();
-const PORT = process.env.PORT || 3009;
+const PORT = process.env.PORT || 3000;
 
 app.use(
   bodyParser.urlencoded({
@@ -34,5 +34,3 @@ app.use(routes);
     console.log("server error");
   }
 })();
-
-app.listen(PORT)
