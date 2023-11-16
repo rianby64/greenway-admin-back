@@ -6,7 +6,6 @@ const db = firestore();
 
 
 const getAllRoutesController = async function (req: any, res: any) {
-	console.log("getAllRoutesController");
   try {
     const routes = await getRoutes(db);
     res.json(routes);
@@ -16,7 +15,6 @@ const getAllRoutesController = async function (req: any, res: any) {
 };
 
 const getAllRoutesUsersController = async function (req: any, res: any) {
-	console.log("getAllRoutesUsersController");
   try {
     const routes = await getRoutes(db, true);
     res.json(routes);
@@ -26,7 +24,6 @@ const getAllRoutesUsersController = async function (req: any, res: any) {
 };
 
 const updateLineByRouteIdController = async function (req: any, res: any) {
-	console.log("updateLineByRouteIdController");
   const id = req.params.id;
   const lines = (req.body /*as { lat: number; lng: number }[]*/).map((line: any) => {
     return new firestore.GeoPoint(line.lat, line.lng);
@@ -42,7 +39,6 @@ const updateLineByRouteIdController = async function (req: any, res: any) {
 };
 
 const updateLinesByUserIdController = async function (req: any, res: any) {
-	console.log("updateLinesByUserIdController");
   const id = req.params.id;
   const lines = (req.body /*as { lat: number; lng: number }[]*/).map((line: any) => {
     return new firestore.GeoPoint(line.lat, line.lng);
@@ -58,7 +54,6 @@ const updateLinesByUserIdController = async function (req: any, res: any) {
 };
 
 const updateRouteByIdController = async function (req: any, res: any) {
-	console.log("updateRouteByIdController");
   console.log(req.body);
   const id = req.params.id;
   const routeTypesRefs = await db.collection('travel_types').get();
@@ -153,7 +148,6 @@ const updateRouteByIdController = async function (req: any, res: any) {
 };
 
 const updateRouteByUserIdController = async function (req: any, res: any) {
-	console.log("updateRouteByUserIdController");
   console.log(req.body);
   const id = req.params.id;
   const routeTypesRefs = await db.collection('travel_types').get();
@@ -248,7 +242,6 @@ const updateRouteByUserIdController = async function (req: any, res: any) {
 };
 
 const createRouteController = async function (req: any, res: any) {
-	console.log("createRouteController");
   console.log(req.body);
   const routeTypesRefs = await db.collection('travel_types').get();
   const routeCategoriesRefs = await db.collection('categories').get();
@@ -340,7 +333,6 @@ const createRouteController = async function (req: any, res: any) {
 };
 
 const createUserRouteController = async function (req: any, res: any) {
-	console.log("createUserRouteController");
   console.log(req.body);
   const routeTypesRefs = await db.collection('travel_types').get();
   const routeCategoriesRefs = await db.collection('categories').get();
@@ -432,7 +424,6 @@ const createUserRouteController = async function (req: any, res: any) {
 };
 
 const updateDotsByRouteIdController = async function (req: any, res: any) {
-	console.log("updateDotsByRouteIdController");
   const id = req.params.id;
   const routeRef = await db.collection('routes').doc(id).get();
   const dotRefs = (await routeRef.get(
@@ -494,7 +485,6 @@ const updateDotsByRouteIdController = async function (req: any, res: any) {
 };
 
 const updateDotsByUserIdController = async function (req: any, res: any) {
-	console.log("updateDotsByUserIdController");
   const id = req.params.id;
   const routeRef = await db.collection('users_routes').doc(id).get();
   const dotRefs = (await routeRef.get(
@@ -556,7 +546,6 @@ const updateDotsByUserIdController = async function (req: any, res: any) {
 };
 
 const createDotController = async function (req: any, res: any) {
-	console.log("createDotController");
   console.log(req.body);
   const id = req.params.id;
   const routeRef = await db.collection('routes').doc(id);
@@ -620,7 +609,6 @@ const createDotController = async function (req: any, res: any) {
 };
 
 const createDotByUserIdController = async function (req: any, res: any) {
-	console.log("createDotByUserIdController");
   console.log(req.body);
   const id = req.params.id;
   const routeRef = await db.collection('users_routes').doc(id);

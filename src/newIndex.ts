@@ -3,6 +3,7 @@ import bodyParser from "body-parser";
 import { initializeApp, credential } from "firebase-admin";
 import "./fire-keys.json";
 const key = require("./fire-keys.json");
+const cors = require("cors")
 
 initializeApp({
   credential: credential.cert(key),
@@ -23,6 +24,7 @@ app.use(
 );
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.raw());
+app.use(cors());
 
 app.use(routes);
 
