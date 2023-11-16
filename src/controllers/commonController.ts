@@ -4,7 +4,6 @@ const db = firestore();
 
 
 async function getDotTypesController(req: any, res: any) {
-	console.log("getDotTypesController");
     const dotTypeRefs = await db.collection('dot_types').get();
     res.json(
         dotTypeRefs.docs.map((dotTypeRef) => {
@@ -18,7 +17,6 @@ async function getDotTypesController(req: any, res: any) {
 };
 
 async function getDistricts(req: any, res: any) {
-	console.log("getDistricts");
     const districtsRefs = await db.collection('districts').get();
     const districtArray = await Promise.all(districtsRefs.docs.map(async (districtRef) => {
         const title = districtRef.get('title');
@@ -46,7 +44,6 @@ async function getDistricts(req: any, res: any) {
 };
 
 async function getRouteCategories(req: any, res: any) {
-	console.log("getDistricgetRouteCategoriests");
     const routeTypeRefs = await db.collection('categories').get();
     res.json(
         routeTypeRefs.docs.map((routeTypeRef) => {
@@ -60,7 +57,6 @@ async function getRouteCategories(req: any, res: any) {
 };
 
 async function getRouteDifficulties(req: any, res: any) {
-	console.log("getRouteDifficulties");
     const routeTypeRefs = await db.collection('difficulties').get();
     res.json(
         routeTypeRefs.docs.map((routeTypeRef) => {
@@ -74,7 +70,6 @@ async function getRouteDifficulties(req: any, res: any) {
 };
 
 async function getRouteTypes(req: any, res: any) {
-	console.log("getRouteTypes");
     const routeTypeRefs = await db.collection('travel_types').get();
     res.json(
         routeTypeRefs.docs.map((routeTypeRef) => {
@@ -88,7 +83,6 @@ async function getRouteTypes(req: any, res: any) {
 };
 
 async function deleteDotById(req: any, res: any) {
-	console.log("deleteDotById");
     const iddot = req.params.iddot;
     try {
         await db.collection('dots').doc(iddot).delete();
@@ -101,7 +95,6 @@ async function deleteDotById(req: any, res: any) {
 };
 
 async function deleteUserRouteById(req: any, res: any) {
-	console.log("deleteUserRouteById");
     const id = req.params.id;
     try {
         await db.collection('users_routes').doc(id).delete();
