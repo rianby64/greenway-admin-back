@@ -1,99 +1,71 @@
 import { firestore } from 'firebase-admin';
-const bcrypt = require('bcrypt')
-const tokenService = require('../services/tokenService')
-const UserDto = require('../dtos/userDto')
+const userService = require('../services/userService')
+const { validationResult } = require("express-validator")
+const ApiError = require('../exceptions/api-error')
 
 const db = firestore();
 
 async function registration(req: any, res: any, next: any) {
 	try {
-		const email = req.body.email;
-		const password = req.body.password;
-
-		const usersRefs = await db.collection('users').get();
-		const candidate = 
-			usersRefs.docs.map((userRef) => {
-						return {
-							id: userRef.id,
-							email: userRef.get('email'),
-							password: userRef.get('password'),
-							refreshToken: userRef.get('refreshToken'),
-							accessToken: userRef.get('accessToken'),
-							roleId: userRef.get('roleId')
-						}
-				}).find((el) => el.email === email)
-	
-		if (candidate) {
-			throw new Error(`Пользователь с почтовым адресом ${email} уже существует`);
-		}
-	
-		const hashedPassword = await bcrypt.hash(password, 3);
-		const user = {
-			email,
-			password: hashedPassword,
-			roleId: 0,
+		const errors = validationResult(req);
+		if (!errors.isEmpty()) {
+			return next(ApiError.BadRequest('Validation error', errors.array()))
 		}
 
-		const id = db.collection('users').doc().id;
-		await db.collection('users').doc(id).create(user);
-
-		const userDto = new UserDto(user, id)
-		const tokens = tokenService.generateTokens({...userDto});
-		await tokenService.saveToken(db, userDto.id, tokens.refreshToken)
-		res.json(userDto)
+		const { email, password } = req.body;
+		const userData = await userService.register(db, email, password)
+		res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
+		res.json(userData)
 	}
 	catch (e) {
-		console.log(e)
-		res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
+		next(e);
 	}
 }
 
 async function login(req: any, res: any, next: any) {
 	try {
+		const {email, password} = req.body;
+		const userData = await userService.login(db, email, password)
 
+		res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
+		res.json(userData)
 	}
 	catch (e) {
-		res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
+		next(e);
 	}
 }
 
 async function logout(req: any, res: any, next: any) {
 	try {
-
+		const {refreshToken} = req.cookies;
+		const token = await userService.logout(db, refreshToken);
+		res.clearCookie('refreshToken');
+		return res.json(token);
 	}
 	catch (e) {
-		res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
+		next(e);
 	}
 }
 
 async function refresh(req: any, res: any, next: any) {
 	try {
-
+		const {refreshToken} = req.cookies;
+		const userData = await userService.refresh(db, refreshToken)
+		res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
+		res.json(userData)
 	}
 	catch (e) {
-		res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
+		next(e);
 	}
 }
 
 async function getUsers(req: any, res: any, next: any) {
 	try {
-		const usersRefs = await db.collection('users').get();
-		const users = 
-			usersRefs.docs.map((userRef) => {
-						return {
-							id: userRef.id,
-							email: userRef.get('email'),
-							password: userRef.get('password'),
-							refreshToken: userRef.get('refreshToken'),
-							accessToken: userRef.get('accessToken'),
-							roleId: userRef.get('roleId')
-						}
-				})
-
+		const users = await userService.getUsers(db);
 		res.json(users)
 	}
 	catch (e) {
-		res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
+		next(e);
 	}
 }
 
