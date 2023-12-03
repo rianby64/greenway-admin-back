@@ -14,7 +14,6 @@ async function registration(req: any, res: any, next: any) {
 
 		const { email, password } = req.body;
 		const userData = await userService.register(db, email, password)
-		res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
 		res.json(userData)
 	}
 	catch (e) {
@@ -26,8 +25,6 @@ async function login(req: any, res: any, next: any) {
 	try {
 		const {email, password} = req.body;
 		const userData = await userService.login(db, email, password)
-
-		res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
 		res.json(userData)
 	}
 	catch (e) {
@@ -37,9 +34,8 @@ async function login(req: any, res: any, next: any) {
 
 async function logout(req: any, res: any, next: any) {
 	try {
-		const {refreshToken} = req.cookies;
+		const {refreshToken} = req.body;
 		const token = await userService.logout(db, refreshToken);
-		res.clearCookie('refreshToken');
 		return res.json(token);
 	}
 	catch (e) {
@@ -49,9 +45,8 @@ async function logout(req: any, res: any, next: any) {
 
 async function refresh(req: any, res: any, next: any) {
 	try {
-		const {refreshToken} = req.cookies;
+		const {refreshToken} = req.body;
 		const userData = await userService.refresh(db, refreshToken)
-		res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: true })
 		res.json(userData)
 	}
 	catch (e) {

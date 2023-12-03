@@ -33,7 +33,7 @@ apiRouter.post("/registration",
 	registration);
 apiRouter.post("/login", login);
 apiRouter.post("/logout", logout);
-apiRouter.get("/refresh", refresh);
+apiRouter.post("/refresh", refresh);
 apiRouter.get("/users", authMiddleware, getUsers);
 // apiRouter.delete("/dot/:iddot", deleteDotById);
 // apiRouter.delete("/user/route/:id", deleteUserRouteById);
