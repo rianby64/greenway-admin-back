@@ -1,14 +1,22 @@
 import { initializeApp, credential, firestore } from 'firebase-admin';
 const { clearImageArray, creatorManger } = require("../utils/utils")
-const { getRoutes } = require("../services/routesService");
+const { getRoutes, getRoutesByUserId } = require("../services/routesService");
 
 const db = firestore();
 
 
 const getAllRoutesController = async function (req: any, res: any) {
   try {
-    const routes = await getRoutes(db);
-    res.json(routes);
+		if (req.user.roleId === 1) {
+			const routes = await getRoutes(db);
+			res.json(routes);
+		}
+		else {
+			const routes = await getRoutesByUserId(db, req.user.id);
+			res.json(routes);
+		}
+
+
   } catch (e) {
     res.status(500).json(e); // THIS IS AN ERROR!!! MAKE SURE YOU WONT EXPOSE SENSTIVE INFO HERE
   }

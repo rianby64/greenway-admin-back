@@ -17,9 +17,10 @@ const {
 
 const routesRouter = Router();
 const prefix = "";
+const authMiddleware = require('../middlewares/auth-middleware')
 
 // TODO: edit controllers names
-routesRouter.get(prefix, getAllRoutesController);
+routesRouter.get(prefix, authMiddleware, getAllRoutesController);
 routesRouter.get(`${prefix}/users`, getAllRoutesUsersController);
 routesRouter.put(`${prefix}/:id/lines`, updateLineByRouteIdController);
 routesRouter.put(`${prefix}/users/:id/lines`, updateLinesByUserIdController);

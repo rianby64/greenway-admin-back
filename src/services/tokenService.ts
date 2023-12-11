@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 
 const generateTokens = (payload: any) => {
-	const accessToken = jwt.sign(payload, "jwt-access-secret-key", { expiresIn: '30s'});
+	const accessToken = jwt.sign(payload, "jwt-access-secret-key", { expiresIn: '30m'});
 	const refreshToken = jwt.sign(payload, "jwt-refresh-secret-key", { expiresIn: '30d'});
 
 	return {
