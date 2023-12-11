@@ -68,6 +68,8 @@ const updateRouteByIdController = async function (req: any, res: any) {
   const routeCategoriesRefs = await db.collection('categories').get();
   const routeDifficultyRefs = await db.collection('difficulties').get();
   const districtsRefs = await db.collection('districts').get();
+	const authorsRefs = await db.collection('users').get();
+
   let difficultyRef: firestore.DocumentData = firestore.DocumentReference;
   routeDifficultyRefs.docs.map((el) => {
     if (el.id === req.body.difficulty) {
@@ -102,6 +104,13 @@ const updateRouteByIdController = async function (req: any, res: any) {
     });
   });
 
+	let authorRef: firestore.DocumentData = firestore.DocumentReference;
+  authorsRefs.docs.map((el) => {
+    if (el.id === req.body.author.id) {
+      authorRef = el.ref;
+    }
+  });
+
   let ObjectOfDurations: any = {};
   req.body.durations.forEach((el: any) => {
     ObjectOfDurations[el.name] = parseInt(el.number);
@@ -124,7 +133,8 @@ const updateRouteByIdController = async function (req: any, res: any) {
     durations?: Object;
     difficulty?: firestore.DocumentData;
     images?: Array<any>,
-    creator?: any
+    creator?: any,
+		author?: firestore.DocumentData
   } = {
     animals: !!req.body.animals,
     approved: !!req.body.approved,
@@ -141,7 +151,8 @@ const updateRouteByIdController = async function (req: any, res: any) {
     durations: ObjectOfDurations,
     difficulty: difficultyRef,
     images: clearImageArray(req.body.images),
-    creator: creatorManger(req.body.creator)
+    creator: creatorManger(req.body.creator),
+		author: authorRef
   };
   delete rowToUpdate.id;
 
