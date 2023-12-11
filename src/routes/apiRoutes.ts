@@ -20,12 +20,13 @@ const prefix = "";
 const authMiddleware = require('../middlewares/auth-middleware')
 
 // TODO: edit controllers names
+// TODO: Remove all "..users.." things, update them with auth
 routesRouter.get(prefix, authMiddleware, getAllRoutesController);
 routesRouter.get(`${prefix}/users`, getAllRoutesUsersController);
 routesRouter.put(`${prefix}/:id/lines`, updateLineByRouteIdController);
 routesRouter.put(`${prefix}/users/:id/lines`, updateLinesByUserIdController);
 routesRouter.put(`${prefix}/:id`, updateRouteByIdController);
-routesRouter.put(`${prefix}/users/:id`, updateRouteByUserIdController);
+routesRouter.put(`${prefix}/users/:id`, updateRouteByUserIdController);//
 routesRouter.post(`${prefix}`, createRouteController);
 routesRouter.post(`${prefix}/users`, createUserRouteController);
 routesRouter.put(`${prefix}/:id/dots`, updateDotsByRouteIdController);
