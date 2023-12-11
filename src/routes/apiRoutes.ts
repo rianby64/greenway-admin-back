@@ -23,15 +23,15 @@ const authMiddleware = require('../middlewares/auth-middleware')
 // TODO: Remove all "..users.." things, update them with auth
 routesRouter.get(prefix, authMiddleware, getAllRoutesController);
 routesRouter.get(`${prefix}/users`, getAllRoutesUsersController);
-routesRouter.put(`${prefix}/:id/lines`, updateLineByRouteIdController);
+routesRouter.put(`${prefix}/:id/lines`, authMiddleware, updateLineByRouteIdController);
 routesRouter.put(`${prefix}/users/:id/lines`, updateLinesByUserIdController);
-routesRouter.put(`${prefix}/:id`, updateRouteByIdController);
-routesRouter.put(`${prefix}/users/:id`, updateRouteByUserIdController);//
-routesRouter.post(`${prefix}`, createRouteController);
+routesRouter.put(`${prefix}/:id`, authMiddleware, updateRouteByIdController);
+routesRouter.put(`${prefix}/users/:id`, updateRouteByUserIdController);
+routesRouter.post(`${prefix}`, authMiddleware, createRouteController);
 routesRouter.post(`${prefix}/users`, createUserRouteController);
-routesRouter.put(`${prefix}/:id/dots`, updateDotsByRouteIdController);
+routesRouter.put(`${prefix}/:id/dots`, authMiddleware, updateDotsByRouteIdController);
 routesRouter.put(`${prefix}/users/:id/dots`, updateDotsByUserIdController);
-routesRouter.post(`${prefix}/:id/dots`, createDotController);
+routesRouter.post(`${prefix}/:id/dots`, authMiddleware, createDotController);
 routesRouter.post(`${prefix}/users/:id/dots`, createDotByUserIdController);
 
 module.exports = routesRouter;

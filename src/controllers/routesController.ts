@@ -106,7 +106,7 @@ const updateRouteByIdController = async function (req: any, res: any) {
 
 	let authorRef: firestore.DocumentData = firestore.DocumentReference;
   authorsRefs.docs.map((el) => {
-    if (el.id === req.body.author.id) {
+    if (el.id === req.user.id) {
       authorRef = el.ref;
     }
   });
@@ -303,7 +303,7 @@ const createRouteController = async function (req: any, res: any) {
 
 	let authorRef: firestore.DocumentData = firestore.DocumentReference;
   authorsRefs.docs.map((el) => {
-    if (el.id === req.body.author.id) {
+    if (el.id === req.user.id) {
       authorRef = el.ref;
     }
   });
