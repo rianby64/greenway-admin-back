@@ -64,6 +64,18 @@ const updateLinesByUserIdController = async function (req: any, res: any) {
 const updateRouteByIdController = async function (req: any, res: any) {
   console.log(req.body);
   const id = req.params.id;
+	if (req.user.roleId !== 1) {
+		const routeRef = await db.collection('routes').doc(id).get();
+		const realAuthorRef = (await routeRef.get('author')) as FirebaseFirestore.DocumentReference;
+		const realAuthor = await realAuthorRef.get();
+		const realAuthorId = realAuthor.id;
+
+		if (realAuthorId !== req.user.id) {
+			res.json({success: false, message: "wrong user, we have your ip, you will be in jail very soon"})
+			return;
+		}
+
+	}
   const routeTypesRefs = await db.collection('travel_types').get();
   const routeCategoriesRefs = await db.collection('categories').get();
   const routeDifficultyRefs = await db.collection('difficulties').get();
@@ -579,6 +591,18 @@ const updateDotsByUserIdController = async function (req: any, res: any) {
 const createDotController = async function (req: any, res: any) {
   console.log(req.body);
   const id = req.params.id;
+	if (req.user.roleId !== 1) {
+		const routeRef = await db.collection('routes').doc(id).get();
+		const realAuthorRef = (await routeRef.get('author')) as FirebaseFirestore.DocumentReference;
+		const realAuthor = await realAuthorRef.get();
+		const realAuthorId = realAuthor.id;
+
+		if (realAuthorId !== req.user.id) {
+			res.json({success: false, message: "wrong user, we have your ip, you will be in jail very soon"})
+			return;
+		}
+	}
+
   const routeRef = await db.collection('routes').doc(id);
   const dotTypesRef = await db.collection('dot_types').get();
   const dotsFromRequest = req.body as {

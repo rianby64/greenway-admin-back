@@ -79,7 +79,6 @@ async function logout(db: FirebaseFirestore.Firestore, refreshToken: any) {
 }
 
 async function refresh(db: FirebaseFirestore.Firestore, refreshToken: any) {
-	console.log(refreshToken)
 	if(!refreshToken) {
 		throw ApiError.UnauthorizedError();
 	}
@@ -87,8 +86,6 @@ async function refresh(db: FirebaseFirestore.Firestore, refreshToken: any) {
 
 	const userData = tokenService.validateRefreshToken(refreshToken);
 	const tokenFromDb = await tokenService.findToken(db, refreshToken);
-	console.log(userData)
-	console.log(tokenFromDb)
 	if (!userData || !tokenFromDb) {
 		throw ApiError.UnauthorizedError();
 	}

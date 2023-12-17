@@ -173,7 +173,6 @@ async function getRoutesByUserId(db: FirebaseFirestore.Firestore, id: number) {
 						return;
 					}
 
-					console.log("authorId is equal to req.user.id");
 					const email = await author.get("email");
           return {
             id: routeRef.id,
