@@ -74,6 +74,7 @@ async function getRoutes(db: FirebaseFirestore.Firestore) {
                       },
                       type: dottypeId,
                       title: await dot.get('title'),
+											'title-tr': await dot.get('title-tr'),
                       images: await dot.get("images")
                     };
                   }
@@ -219,6 +220,7 @@ async function getRoutesByUserId(db: FirebaseFirestore.Firestore, id: number) {
                       },
                       type: dottypeId,
                       title: await dot.get('title'),
+											'title-tr': await dot.get('title-tr'),
                       images: await dot.get("images")
                     };
                   }

@@ -613,6 +613,7 @@ const createDotController = async function (req: any, res: any) {
       lng: number;
     };
     title: string;
+		"title-tr": string;
     type: string;
     images: string[];
   }[];
@@ -626,6 +627,7 @@ const createDotController = async function (req: any, res: any) {
         const createdDotRef = db.collection('dots').doc();
         createdDotRef.create({
           title: dotFromRequest.title,
+					"title-tr": dotFromRequest['title-tr'],
           description: dotFromRequest.description,
           position: new firestore.GeoPoint(
             dotFromRequest.position.lat,
@@ -639,6 +641,7 @@ const createDotController = async function (req: any, res: any) {
         const createdDotRef = db.collection('dots').doc(dotFromRequest.id);
         const obj = {
           title: dotFromRequest.title,
+					"title-tr": dotFromRequest['title-tr'],
           description: dotFromRequest.description,
           position: new firestore.GeoPoint(
             dotFromRequest.position.lat,
