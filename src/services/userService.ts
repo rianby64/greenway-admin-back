@@ -82,8 +82,6 @@ async function refresh(db: FirebaseFirestore.Firestore, refreshToken: any) {
 	if(!refreshToken) {
 		throw ApiError.UnauthorizedError();
 	}
-
-
 	const userData = tokenService.validateRefreshToken(refreshToken);
 	const tokenFromDb = await tokenService.findToken(db, refreshToken);
 	if (!userData || !tokenFromDb) {

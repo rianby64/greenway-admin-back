@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
 
 const generateTokens = (payload: any) => {
-	const accessToken = jwt.sign(payload, "jwt-access-secret-key", { expiresIn: '30m'});
+	//TODO: secret keys
+	const accessToken = jwt.sign(payload, "jwt-access-secret-key", { expiresIn: '30s'});
 	const refreshToken = jwt.sign(payload, "jwt-refresh-secret-key", { expiresIn: '30d'});
 
 	return {
@@ -73,8 +74,8 @@ async function removeToken(db: FirebaseFirestore.Firestore, refreshToken: any) {
 
 async function findToken(db: FirebaseFirestore.Firestore, refreshToken: any) {
 	const tokensRefs = await db.collection('tokens').get();
-	const tokenId = 
-	tokensRefs.docs.map((tokenRef) => {
+	const tokenId =
+		tokensRefs.docs.map((tokenRef) => {
 						return {
 							id: tokenRef.id,
 							refreshToken: tokenRef.get('refreshToken'),
