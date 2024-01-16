@@ -3,8 +3,8 @@ import bodyParser from "body-parser";
 import { initializeApp, credential } from "firebase-admin";
 import "./fire-keys.json";
 const key = require("./fire-keys.json");
-const cors = require("cors")
-const errorMiddleware = require('./middlewares/error-middleware')
+const cors = require("cors");
+const errorMiddleware = require("./middlewares/error-middleware");
 
 initializeApp({
   credential: credential.cert(key),
